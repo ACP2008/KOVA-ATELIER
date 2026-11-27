@@ -71,6 +71,22 @@ service cloud.firestore {
       ];
     }
 
+    function isValidProductImageAt(images, idx) {
+      return idx >= images.size() || (
+        images[idx] is string &&
+        images[idx].size() >= 1 &&
+        images[idx].size() <= 1500 &&
+        !images[idx].matches('^(data:|blob:|file:).*')
+      );
+    }
+
+    function isValidImagePathAt(paths, idx) {
+      return idx >= paths.size() || (
+        paths[idx] is string &&
+        paths[idx].size() <= 500
+      );
+    }
+
     function isValidProduct(data) {
       return data.keys().hasAll([
           'name', 'slug', 'category', 'description', 'fabricInfo', 'price',
@@ -80,7 +96,7 @@ service cloud.firestore {
         ])
         && data.keys().hasOnly([
           'name', 'slug', 'category', 'description', 'fabricInfo', 'price',
-          'discountPrice', 'sku', 'sizes', 'colors', 'images', 'stockQuantity',
+          'discountPrice', 'sku', 'sizes', 'colors', 'images', 'imagePaths', 'stockQuantity',
           'variantStock', 'featured', 'newArrival', 'bestSeller', 'badge', 'status',
           'createdAt', 'updatedAt'
         ])
@@ -96,7 +112,28 @@ service cloud.firestore {
         && data.sizes is list && data.sizes.size() >= 1 && data.sizes.size() <= 10 && data.sizes[0] is string
         && data.colors is list && data.colors.size() >= 1 && data.colors.size() <= 10 && data.colors[0] is map
         && data.images is list && data.images.size() >= 1 && data.images.size() <= 8
-        && data.images[0] is string && data.images[0].size() >= 1 && data.images[0].size() <= 500
+        && isValidProductImageAt(data.images, 0)
+        && isValidProductImageAt(data.images, 1)
+        && isValidProductImageAt(data.images, 2)
+        && isValidProductImageAt(data.images, 3)
+        && isValidProductImageAt(data.images, 4)
+        && isValidProductImageAt(data.images, 5)
+        && isValidProductImageAt(data.images, 6)
+        && isValidProductImageAt(data.images, 7)
+        && (
+          !('imagePaths' in data) || (
+            data.imagePaths is list &&
+            data.imagePaths.size() <= 8 &&
+            isValidImagePathAt(data.imagePaths, 0) &&
+            isValidImagePathAt(data.imagePaths, 1) &&
+            isValidImagePathAt(data.imagePaths, 2) &&
+            isValidImagePathAt(data.imagePaths, 3) &&
+            isValidImagePathAt(data.imagePaths, 4) &&
+            isValidImagePathAt(data.imagePaths, 5) &&
+            isValidImagePathAt(data.imagePaths, 6) &&
+            isValidImagePathAt(data.imagePaths, 7)
+          )
+        )
         && data.stockQuantity is int && data.stockQuantity >= 0 && data.stockQuantity <= 100000
         && data.variantStock is map && data.variantStock.size() <= 60
         && data.featured is bool
@@ -134,7 +171,8 @@ service cloud.firestore {
         && item.quantity is int && item.quantity >= 1 && item.quantity <= 20
         && item.size is string && item.size.size() >= 1 && item.size.size() <= 20
         && item.color is string && item.color.size() >= 1 && item.color.size() <= 40
-        && item.image is string && item.image.size() >= 1 && item.image.size() <= 500;
+        && item.image is string && item.image.size() >= 1 && item.image.size() <= 1500
+        && !item.image.matches('^(data:|blob:|file:).*');
     }
 
     function isItemPriceValidAt(items, idx) {
@@ -335,12 +373,14 @@ service cloud.firestore {
         && data.heroTitle is string && data.heroTitle.size() >= 2 && data.heroTitle.size() <= 120
         && data.heroSubtitle is string && data.heroSubtitle.size() <= 300
         && data.heroCtaText is string && data.heroCtaText.size() >= 2 && data.heroCtaText.size() <= 40
-        && data.heroImage is string && data.heroImage.size() >= 1 && data.heroImage.size() <= 500
+        && data.heroImage is string && data.heroImage.size() >= 1 && data.heroImage.size() <= 1500
+        && !data.heroImage.matches('^(data:|blob:|file:).*')
         && data.promoBannerText is string && data.promoBannerText.size() <= 180
         && data.promoBannerActive is bool
         && data.editorialTitle is string && data.editorialTitle.size() <= 120
         && data.editorialSubtitle is string && data.editorialSubtitle.size() <= 300
-        && data.editorialImage is string && data.editorialImage.size() <= 500
+        && data.editorialImage is string && data.editorialImage.size() <= 1500
+        && !data.editorialImage.matches('^(data:|blob:|file:).*')
         && isValidEmail(data.contactEmail)
         && data.contactPhone is string && data.contactPhone.size() <= 30
         && data.whatsappNumber is string && data.whatsappNumber.size() <= 30

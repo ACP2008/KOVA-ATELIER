@@ -40,6 +40,7 @@ export interface Product {
   sizes: string[];
   colors: ProductColor[];
   images: string[];
+  imagePaths?: string[];
   stockQuantity: number;
   variantStock: Record<string, number>; // key: `${size}_${colorName}`
   featured: boolean;

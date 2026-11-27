@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shirt } from 'lucide-react';
 
 interface ResilientImageProps {
@@ -10,6 +10,10 @@ interface ResilientImageProps {
 
 export function ResilientImage({ src, alt, className = '', fallbackTitle }: ResilientImageProps) {
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
 
   if (!src || failed) {
     return (

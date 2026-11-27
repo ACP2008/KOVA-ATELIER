@@ -404,11 +404,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           })
           .map((d) => {
             const data = d.data();
-            const cleanImages = Array.isArray(data.images)
-              ? (data.images as string[]).filter(
-                  (img) => !LEGACY_DELETED_IMAGE_FRAGMENTS.some((frag) => String(img).includes(frag))
-                )
-              : [];
+            const rawImages = Array.isArray(data.images) ? (data.images as string[]) : [];
+            const rawImagePaths = Array.isArray(data.imagePaths) ? (data.imagePaths as string[]) : [];
+            const cleanImages: string[] = [];
+            const cleanImagePaths: string[] = [];
+            rawImages.forEach((img, idx) => {
+              const url = String(img || '');
+              if (
+                url &&
+                !url.startsWith('blob:') &&
+                !url.startsWith('data:') &&
+                !LEGACY_DELETED_IMAGE_FRAGMENTS.some((frag) => url.includes(frag))
+              ) {
+                cleanImages.push(url);
+                cleanImagePaths.push(typeof rawImagePaths[idx] === 'string' ? rawImagePaths[idx] : '');
+              }
+            });
             return {
               id: d.id,
               name: String(data.name || ''),
@@ -425,6 +436,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 cleanImages.length > 0
                   ? cleanImages
                   : ['/src/assets/images/mens_oversized_black_tee_1795777633835.jpg'],
+              imagePaths: cleanImages.length > 0 ? cleanImagePaths : [''],
               stockQuantity: Number(data.stockQuantity || 0),
               variantStock: (data.variantStock as Record<string, number>) || {},
               featured: Boolean(data.featured),

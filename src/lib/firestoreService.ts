@@ -10,7 +10,13 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from './firebase';
+import {
+  db,
+  deleteStorageFileIfExists,
+  extractStoragePathFromUrl,
+  handleFirestoreError,
+  OperationType,
+} from './firebase';
 import {
   AdminNotification,
   InventoryLog,
@@ -278,6 +284,30 @@ export async function saveProductToFirestore(
       ? computedTotal
       : Math.max(0, Math.round(Number(product.stockQuantity) || 0));
 
+  const cleanImages: string[] = [];
+  const cleanImagePaths: string[] = [];
+  const rawPaths = Array.isArray(product.imagePaths) ? product.imagePaths : [];
+
+  for (let i = 0; i < product.images.length && cleanImages.length < 8; i++) {
+    const rawUrl = (product.images[i] || '').trim();
+    if (
+      !rawUrl ||
+      rawUrl.startsWith('blob:') ||
+      rawUrl.startsWith('data:') ||
+      rawUrl.startsWith('file:')
+    ) {
+      continue;
+    }
+    cleanImages.push(rawUrl.slice(0, 1500));
+    const explicitPath = typeof rawPaths[i] === 'string' ? rawPaths[i].trim() : '';
+    const resolvedPath = explicitPath || extractStoragePathFromUrl(rawUrl) || '';
+    cleanImagePaths.push(resolvedPath.slice(0, 500));
+  }
+
+  if (cleanImages.length === 0) {
+    throw new Error('At least one permanent product image URL is required.');
+  }
+
   const payload = {
     name: product.name.trim().slice(0, 120),
     slug: sanitizeSlug(product.slug || product.name),
@@ -289,7 +319,8 @@ export async function saveProductToFirestore(
     sku: sanitizeSku(product.sku),
     sizes: product.sizes.slice(0, 10),
     colors: product.colors.slice(0, 10),
-    images: product.images.filter(Boolean).slice(0, 8),
+    images: cleanImages,
+    imagePaths: cleanImagePaths,
     stockQuantity: finalStock,
     variantStock: cleanVariantStock,
     featured: Boolean(product.featured),
@@ -354,6 +385,52 @@ export async function deleteProductFromFirestore(productId: string): Promise<voi
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, path);
   }
+}
+
+export function collectProductStoragePaths(product: Pick<Product, 'images' | 'imagePaths'>): string[] {
+  const paths = new Set<string>();
+  if (Array.isArray(product.imagePaths)) {
+    for (const p of product.imagePaths) {
+      if (typeof p === 'string' && p.trim().startsWith('products/')) {
+        paths.add(p.trim());
+      }
+    }
+  }
+  if (Array.isArray(product.images)) {
+    for (const url of product.images) {
+      const extracted = extractStoragePathFromUrl(url);
+      if (extracted && extracted.startsWith('products/')) {
+        paths.add(extracted);
+      }
+    }
+  }
+  return Array.from(paths);
+}
+
+export async function cleanupUnusedStorageImages(
+  candidatePaths: string[],
+  otherProducts: Product[]
+): Promise<void> {
+  const uniqueCandidates = Array.from(
+    new Set(
+      candidatePaths
+        .map((p) => (p || '').trim())
+        .filter((p) => p.startsWith('products/'))
+    )
+  );
+  if (uniqueCandidates.length === 0) return;
+
+  const referencedPaths = new Set<string>();
+  for (const prod of otherProducts) {
+    for (const refPath of collectProductStoragePaths(prod)) {
+      referencedPaths.add(refPath);
+    }
+  }
+
+  const safeToDelete = uniqueCandidates.filter((p) => !referencedPaths.has(p));
+  if (safeToDelete.length === 0) return;
+
+  await Promise.allSettled(safeToDelete.map((path) => deleteStorageFileIfExists(path)));
 }
 
 export async function adjustProductVariantStock(params: {
@@ -505,7 +582,7 @@ export async function placeCustomerOrder(params: {
         quantity: Math.max(1, Math.min(20, Math.round(item.quantity))),
         size: item.size.slice(0, 20),
         color: item.color.slice(0, 40),
-        image: item.image.slice(0, 500),
+        image: item.image.slice(0, 1500),
       })),
       subtotal: Math.round(subtotal),
       promoCode: params.promoCode.trim().toUpperCase().slice(0, 32),
@@ -702,12 +779,12 @@ export async function saveSiteSettingsToFirestore(settings: SiteSettings): Promi
       heroTitle: settings.heroTitle.trim().slice(0, 120),
       heroSubtitle: settings.heroSubtitle.trim().slice(0, 300),
       heroCtaText: settings.heroCtaText.trim().slice(0, 40),
-      heroImage: settings.heroImage.trim().slice(0, 500),
+      heroImage: settings.heroImage.trim().slice(0, 1500),
       promoBannerText: settings.promoBannerText.trim().slice(0, 180),
       promoBannerActive: Boolean(settings.promoBannerActive),
       editorialTitle: settings.editorialTitle.trim().slice(0, 120),
       editorialSubtitle: settings.editorialSubtitle.trim().slice(0, 300),
-      editorialImage: settings.editorialImage.trim().slice(0, 500),
+      editorialImage: settings.editorialImage.trim().slice(0, 1500),
       contactEmail: settings.contactEmail.trim().slice(0, 120),
       contactPhone: settings.contactPhone.trim().slice(0, 30),
       whatsappNumber: settings.whatsappNumber.trim().slice(0, 30),

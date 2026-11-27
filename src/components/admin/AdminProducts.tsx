@@ -1,7 +1,22 @@
-import React, { useMemo, useState } from 'react';
-import { Edit3, Image as ImageIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Cloud,
+  Edit3,
+  Image as ImageIcon,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Star,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import {
+  cleanupUnusedStorageImages,
+  collectProductStoragePaths,
   deleteProductFromFirestore,
   sanitizeId,
   sanitizeSku,
@@ -9,7 +24,14 @@ import {
   saveProductToFirestore,
   updateProductBadgeInFirestore,
 } from '../../lib/firestoreService';
-import { uploadImageToStorage } from '../../lib/firebase';
+import {
+  deleteStorageFileIfExists,
+  extractStoragePathFromUrl,
+  MAX_PRODUCT_IMAGES,
+  UploadedStorageImage,
+  uploadProductImageToStorage,
+  validateProductImageFile,
+} from '../../lib/firebase';
 import {
   ADMIN_BADGE_OPTIONS,
   DEFAULT_LOW_STOCK_THRESHOLD,
@@ -27,6 +49,22 @@ interface AdminProductsProps {
   globalSearch: string;
 }
 
+interface StagedImageUpload {
+  id: string;
+  file: File;
+  previewUrl: string;
+  status: 'pending' | 'uploading' | 'error';
+  progress: number;
+  error?: string;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 const EMPTY_FORM: Omit<Product, 'createdAt' | 'updatedAt'> = {
   id: '',
   name: '',
@@ -39,7 +77,8 @@ const EMPTY_FORM: Omit<Product, 'createdAt' | 'updatedAt'> = {
   sku: '',
   sizes: ['S', 'M', 'L', 'XL', 'XXL'],
   colors: [{ name: 'Obsidian', hex: '#141416' }],
-  images: [STUDIO_MEDIA_LIBRARY[2].url],
+  images: [],
+  imagePaths: [],
   stockQuantity: 20,
   variantStock: {
     S_Obsidian: 4,
@@ -67,9 +106,37 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
   const [newColorName, setNewColorName] = useState('');
   const [newColorHex, setNewColorHex] = useState('#27272A');
   const [newImageUrl, setNewImageUrl] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [stagedUploads, setStagedUploads] = useState<StagedImageUpload[]>([]);
+  const [isUploadingBatch, setIsUploadingBatch] = useState(false);
+  const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+  const [replaceProgress, setReplaceProgress] = useState<number>(0);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [uploadFeedback, setUploadFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const [saving, setSaving] = useState(false);
   const [updatingBadgeId, setUpdatingBadgeId] = useState<string | null>(null);
+
+  // Track Cloud Storage files created/removed during the modal session for safe cleanup
+  const sessionUploadedPathsRef = useRef<string[]>([]);
+  const removedPathsOnSaveRef = useRef<string[]>([]);
+  const stagedUploadsRef = useRef<StagedImageUpload[]>([]);
+  const replaceInputRef = useRef<HTMLInputElement | null>(null);
+  const replaceTargetIndexRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    stagedUploadsRef.current = stagedUploads;
+  }, [stagedUploads]);
+
+  // Revoke any object URLs on component unmount
+  useEffect(() => {
+    return () => {
+      for (const item of stagedUploadsRef.current) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = globalSearch.trim().toLowerCase();
@@ -88,18 +155,55 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
     });
   }, [products, categoryFilter, statusFilter, globalSearch]);
 
+  const clearStagedPreviews = () => {
+    for (const item of stagedUploadsRef.current) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+    setStagedUploads([]);
+  };
+
+  const resetImageSession = () => {
+    clearStagedPreviews();
+    sessionUploadedPathsRef.current = [];
+    removedPathsOnSaveRef.current = [];
+    setUploadFeedback(null);
+    setReplacingIndex(null);
+    setReplaceProgress(0);
+    setNewImageUrl('');
+  };
+
+  const closeModal = () => {
+    if (saving || isUploadingBatch || replacingIndex !== null) return;
+    const orphaned = [...sessionUploadedPathsRef.current];
+    if (orphaned.length > 0) {
+      cleanupUnusedStorageImages(orphaned, products).catch((err) =>
+        console.warn('Orphan upload cleanup warning:', err)
+      );
+    }
+    resetImageSession();
+    setModalOpen(false);
+  };
+
   const openCreateModal = () => {
+    resetImageSession();
     setIsEditing(false);
+    const stableProductId = sanitizeId(`prod-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`);
     setForm({
       ...EMPTY_FORM,
-      id: `prod-${Date.now()}`,
+      id: stableProductId,
       sku: `KOVA-NEW-${Math.floor(100 + Math.random() * 900)}`,
+      images: [],
+      imagePaths: [],
     });
     setModalOpen(true);
   };
 
   const openEditModal = (product: Product) => {
+    resetImageSession();
     setIsEditing(true);
+    const alignedImagePaths = product.images.map(
+      (url, idx) => product.imagePaths?.[idx] || extractStoragePathFromUrl(url) || ''
+    );
     setForm({
       id: product.id,
       name: product.name,
@@ -113,6 +217,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
       sizes: [...product.sizes],
       colors: product.colors.map((c) => ({ ...c })),
       images: [...product.images],
+      imagePaths: alignedImagePaths,
       stockQuantity: product.stockQuantity,
       variantStock: { ...product.variantStock },
       featured: product.featured,
@@ -182,27 +287,316 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
     setForm({ ...form, colors: nextColors, ...synced });
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingImage(true);
-    try {
-      const url = await uploadImageToStorage(file, 'products');
-      setForm((prev) => ({ ...prev, images: [...prev.images, url].slice(0, 8) }));
-      addToast('success', 'Image Uploaded', 'Uploaded to Firebase Storage.');
-    } catch {
-      addToast(
-        'error',
-        'Storage Upload Unavailable',
-        'Select from the Studio Media Library or paste a direct image URL.'
-      );
-    } finally {
-      setUploadingImage(false);
+  const stageFilesForUpload = (fileList: FileList | File[]) => {
+    const incomingFiles = Array.from(fileList);
+    if (incomingFiles.length === 0) return;
+
+    const remainingSlots = MAX_PRODUCT_IMAGES - (form.images.length + stagedUploads.length);
+    if (remainingSlots <= 0) {
+      const msg = `Maximum ${MAX_PRODUCT_IMAGES} images allowed per product. Remove an image to add more.`;
+      setUploadFeedback({ type: 'error', message: msg });
+      addToast('error', 'Image Limit Reached', msg);
+      return;
     }
+
+    const errors: string[] = [];
+    const nextStaged: StagedImageUpload[] = [];
+
+    for (const file of incomingFiles) {
+      if (nextStaged.length >= remainingSlots) {
+        errors.push(`Only ${remainingSlots} more image slot(s) available (max ${MAX_PRODUCT_IMAGES}).`);
+        break;
+      }
+      const check = validateProductImageFile(file);
+      if (!check.valid) {
+        errors.push(check.error || `"${file.name}" is invalid.`);
+        continue;
+      }
+      nextStaged.push({
+        id: `stage-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        status: 'pending',
+        progress: 0,
+      });
+    }
+
+    if (nextStaged.length > 0) {
+      setStagedUploads((prev) => [...prev, ...nextStaged]);
+      setUploadFeedback(
+        errors.length > 0
+          ? { type: 'error', message: errors.join(' ') }
+          : {
+              type: 'success',
+              message: `${nextStaged.length} image${nextStaged.length > 1 ? 's' : ''} ready for preview. Click "Upload to Cloud Storage" or save the product to upload permanently.`,
+            }
+      );
+    } else if (errors.length > 0) {
+      setUploadFeedback({ type: 'error', message: errors.join(' ') });
+      addToast('error', 'Invalid Image Selection', errors[0]);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      stageFilesForUpload(e.target.files);
+    }
+    e.target.value = '';
+  };
+
+  const handleRemoveStaged = (stagedId: string) => {
+    setStagedUploads((prev) => {
+      const target = prev.find((item) => item.id === stagedId);
+      if (target) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter((item) => item.id !== stagedId);
+    });
+  };
+
+  const uploadStagedItems = async (
+    targetIds?: string[]
+  ): Promise<{ uploaded: UploadedStorageImage[]; failedCount: number }> => {
+    const itemsToUpload = stagedUploadsRef.current.filter((item) =>
+      targetIds ? targetIds.includes(item.id) : item.status !== 'uploading'
+    );
+    if (itemsToUpload.length === 0) {
+      return { uploaded: [], failedCount: 0 };
+    }
+
+    const productIdForPath = sanitizeId(form.id || `prod-${Date.now()}`);
+    setIsUploadingBatch(true);
+    setUploadFeedback(null);
+
+    const orderedResults: Array<UploadedStorageImage | null> = new Array(itemsToUpload.length).fill(null);
+    const succeededIds: string[] = [];
+    let failedCount = 0;
+    let firstError = '';
+
+    await Promise.all(
+      itemsToUpload.map(async (item, idx) => {
+        setStagedUploads((prev) =>
+          prev.map((s) =>
+            s.id === item.id ? { ...s, status: 'uploading', progress: 5, error: undefined } : s
+          )
+        );
+        try {
+          const res = await uploadProductImageToStorage({
+            file: item.file,
+            productId: productIdForPath,
+            onProgress: (pct) => {
+              setStagedUploads((prev) =>
+                prev.map((s) => (s.id === item.id ? { ...s, progress: pct } : s))
+              );
+            },
+          });
+
+          orderedResults[idx] = res;
+          succeededIds.push(item.id);
+          sessionUploadedPathsRef.current.push(res.path);
+          URL.revokeObjectURL(item.previewUrl);
+        } catch (err) {
+          failedCount += 1;
+          const message = err instanceof Error ? err.message : 'Failed to upload image.';
+          if (!firstError) firstError = message;
+          setStagedUploads((prev) =>
+            prev.map((s) =>
+              s.id === item.id ? { ...s, status: 'error', progress: 0, error: message } : s
+            )
+          );
+        }
+      })
+    );
+
+    const uploadedResults = orderedResults.filter(
+      (res): res is UploadedStorageImage => res !== null
+    );
+
+    if (uploadedResults.length > 0) {
+      setForm((prev) => {
+        const nextImages = [...prev.images];
+        const nextPaths = prev.images.map(
+          (url, i) => prev.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+        );
+        for (const res of uploadedResults) {
+          if (nextImages.length < MAX_PRODUCT_IMAGES && !nextImages.includes(res.url)) {
+            nextImages.push(res.url);
+            nextPaths.push(res.path);
+          }
+        }
+        return {
+          ...prev,
+          images: nextImages,
+          imagePaths: nextPaths,
+        };
+      });
+      setStagedUploads((prev) => prev.filter((s) => !succeededIds.includes(s.id)));
+    }
+
+    setIsUploadingBatch(false);
+
+    if (uploadedResults.length > 0 && failedCount === 0) {
+      const msg = `${uploadedResults.length} image${uploadedResults.length > 1 ? 's' : ''} permanently uploaded to Firebase Cloud Storage.`;
+      setUploadFeedback({ type: 'success', message: msg });
+      addToast('success', 'Cloud Storage Upload Complete', msg);
+    } else if (uploadedResults.length > 0 && failedCount > 0) {
+      const msg = `Uploaded ${uploadedResults.length} image(s), but ${failedCount} failed: ${firstError}`;
+      setUploadFeedback({ type: 'error', message: msg });
+      addToast('error', 'Partial Upload Failure', firstError);
+    } else if (failedCount > 0) {
+      setUploadFeedback({ type: 'error', message: firstError });
+      addToast('error', 'Cloud Storage Upload Failed', firstError);
+    }
+
+    return { uploaded: uploadedResults, failedCount };
+  };
+
+  const handleSetPrimaryImage = (idx: number) => {
+    if (idx <= 0 || idx >= form.images.length) return;
+    const nextImages = [...form.images];
+    const nextPaths = form.images.map(
+      (url, i) => form.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+    );
+    const [pickedUrl] = nextImages.splice(idx, 1);
+    const [pickedPath] = nextPaths.splice(idx, 1);
+    nextImages.unshift(pickedUrl);
+    nextPaths.unshift(pickedPath);
+    setForm((prev) => ({ ...prev, images: nextImages, imagePaths: nextPaths }));
+    setUploadFeedback({
+      type: 'success',
+      message: 'Primary product image updated. Save the product to publish the new order.',
+    });
+  };
+
+  const handleRemoveImage = (idx: number) => {
+    const removedUrl = form.images[idx];
+    const removedPath = form.imagePaths?.[idx] || extractStoragePathFromUrl(removedUrl) || '';
+
+    const nextImages = form.images.filter((_, i) => i !== idx);
+    const nextPaths = form.images
+      .map((url, i) => form.imagePaths?.[i] || extractStoragePathFromUrl(url) || '')
+      .filter((_, i) => i !== idx);
+
+    setForm((prev) => ({ ...prev, images: nextImages, imagePaths: nextPaths }));
+
+    if (removedPath && removedPath.startsWith('products/')) {
+      const sessionIdx = sessionUploadedPathsRef.current.indexOf(removedPath);
+      if (sessionIdx >= 0) {
+        sessionUploadedPathsRef.current.splice(sessionIdx, 1);
+        deleteStorageFileIfExists(removedPath).catch(() => undefined);
+      } else {
+        removedPathsOnSaveRef.current.push(removedPath);
+      }
+    }
+  };
+
+  const handleTriggerReplaceImage = (idx: number) => {
+    if (replacingIndex !== null || isUploadingBatch) return;
+    replaceTargetIndexRef.current = idx;
+    replaceInputRef.current?.click();
+  };
+
+  const handleReplaceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const targetIdx = replaceTargetIndexRef.current;
+    replaceTargetIndexRef.current = null;
+    if (!file || targetIdx === null || targetIdx < 0 || targetIdx >= form.images.length) return;
+
+    const validation = validateProductImageFile(file);
+    if (!validation.valid) {
+      const errMsg = validation.error || 'Invalid replacement image.';
+      setUploadFeedback({ type: 'error', message: errMsg });
+      addToast('error', 'Invalid Image', errMsg);
+      return;
+    }
+
+    const productIdForPath = sanitizeId(form.id || `prod-${Date.now()}`);
+    setReplacingIndex(targetIdx);
+    setReplaceProgress(5);
+    setUploadFeedback(null);
+
+    try {
+      const uploaded = await uploadProductImageToStorage({
+        file,
+        productId: productIdForPath,
+        onProgress: (pct) => setReplaceProgress(pct),
+      });
+
+      const oldUrl = form.images[targetIdx];
+      const oldPath = form.imagePaths?.[targetIdx] || extractStoragePathFromUrl(oldUrl) || '';
+
+      if (oldPath && oldPath.startsWith('products/')) {
+        const sessionIdx = sessionUploadedPathsRef.current.indexOf(oldPath);
+        if (sessionIdx >= 0) {
+          sessionUploadedPathsRef.current.splice(sessionIdx, 1);
+          deleteStorageFileIfExists(oldPath).catch(() => undefined);
+        } else {
+          removedPathsOnSaveRef.current.push(oldPath);
+        }
+      }
+
+      sessionUploadedPathsRef.current.push(uploaded.path);
+
+      setForm((prev) => {
+        const nextImages = [...prev.images];
+        const nextPaths = prev.images.map(
+          (url, i) => prev.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+        );
+        nextImages[targetIdx] = uploaded.url;
+        nextPaths[targetIdx] = uploaded.path;
+        return { ...prev, images: nextImages, imagePaths: nextPaths };
+      });
+
+      const msg = 'Image replaced in Firebase Cloud Storage. Save the product to confirm.';
+      setUploadFeedback({ type: 'success', message: msg });
+      addToast('success', 'Image Replaced', msg);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to replace product image.';
+      setUploadFeedback({ type: 'error', message: errMsg });
+      addToast('error', 'Replace Failed', errMsg);
+    } finally {
+      setReplacingIndex(null);
+      setReplaceProgress(0);
+    }
+  };
+
+  const handleAddExternalUrl = () => {
+    const trimmed = newImageUrl.trim();
+    if (!trimmed) return;
+    const isAllowedUrl =
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/src/assets/');
+    if (!isAllowedUrl || trimmed.startsWith('blob:') || trimmed.startsWith('data:') || trimmed.startsWith('file:')) {
+      const msg = 'Only permanent HTTPS URLs or uploaded Firebase Cloud Storage images are allowed (no local paths, blob, or Base64 URLs).';
+      setUploadFeedback({ type: 'error', message: msg });
+      addToast('error', 'Unsupported Image URL', msg);
+      return;
+    }
+    if (form.images.length >= MAX_PRODUCT_IMAGES) {
+      addToast('error', 'Image Limit Reached', `Maximum ${MAX_PRODUCT_IMAGES} images per product.`);
+      return;
+    }
+    const existingPaths = form.images.map(
+      (url, i) => form.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+    );
+    const extractedPath = extractStoragePathFromUrl(trimmed) || '';
+    setForm((prev) => ({
+      ...prev,
+      images: [...prev.images, trimmed].slice(0, MAX_PRODUCT_IMAGES),
+      imagePaths: [...existingPaths, extractedPath].slice(0, MAX_PRODUCT_IMAGES),
+    }));
+    setNewImageUrl('');
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploadingBatch || replacingIndex !== null) {
+      addToast('info', 'Upload In Progress', 'Please wait for the current image upload to finish.');
+      return;
+    }
     if (form.name.trim().length < 2) {
       addToast('error', 'Validation Error', 'Product name must be at least 2 characters.');
       return;
@@ -211,23 +605,68 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
       addToast('error', 'Validation Error', 'Description must be at least 10 characters.');
       return;
     }
-    if (form.images.length === 0) {
-      addToast('error', 'Validation Error', 'Please add at least one product image.');
-      return;
-    }
 
     setSaving(true);
     try {
-      const id = isEditing ? form.id : sanitizeId(`prod-${sanitizeSlug(form.name)}-${Date.now().toString().slice(-4)}`);
+      let finalImages = [...form.images];
+      let finalImagePaths = form.images.map(
+        (url, i) => form.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+      );
+
+      // Automatically upload any staged preview images to Firebase Cloud Storage before saving
+      if (stagedUploadsRef.current.length > 0) {
+        const { uploaded, failedCount } = await uploadStagedItems();
+        if (failedCount > 0) {
+          addToast(
+            'error',
+            'Upload Required Before Saving',
+            'Resolve or remove failed image uploads before saving the product.'
+          );
+          setSaving(false);
+          return;
+        }
+        for (const item of uploaded) {
+          if (finalImages.length < MAX_PRODUCT_IMAGES && !finalImages.includes(item.url)) {
+            finalImages.push(item.url);
+            finalImagePaths.push(item.path);
+          }
+        }
+      }
+
+      if (finalImages.length === 0) {
+        addToast('error', 'Validation Error', 'Please upload at least one product image.');
+        setSaving(false);
+        return;
+      }
+
+      const stableId = sanitizeId(form.id || `prod-${sanitizeSlug(form.name)}-${Date.now().toString().slice(-4)}`);
       await saveProductToFirestore(
         {
           ...form,
-          id,
+          id: stableId,
+          images: finalImages,
+          imagePaths: finalImagePaths,
           slug: sanitizeSlug(form.slug || form.name),
           sku: sanitizeSku(form.sku),
         },
         isEditing
       );
+
+      // Safely delete removed/replaced Cloud Storage images not used by any other product or this product
+      const pathsToClean = removedPathsOnSaveRef.current.filter(
+        (p) => p && !finalImagePaths.includes(p)
+      );
+      if (pathsToClean.length > 0) {
+        const otherProducts = products.filter((p) => p.id !== stableId);
+        cleanupUnusedStorageImages(pathsToClean, otherProducts).catch((err) =>
+          console.warn('Removed image cleanup warning:', err)
+        );
+      }
+
+      sessionUploadedPathsRef.current = [];
+      removedPathsOnSaveRef.current = [];
+      clearStagedPreviews();
+      setUploadFeedback(null);
       addToast('success', isEditing ? 'Product Updated' : 'Product Created', `${form.name} saved to Firestore.`);
       setModalOpen(false);
     } catch (err) {
@@ -241,12 +680,19 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
   const handleDelete = (product: Product) => {
     requestConfirm({
       title: `Delete "${product.name}"?`,
-      message: 'This will permanently remove the garment from Firestore and the customer storefront.',
+      message: 'This will permanently remove the garment from Firestore, the storefront, and clean up its unused Cloud Storage images.',
       confirmLabel: 'Delete Product',
       destructive: true,
       onConfirm: async () => {
         try {
+          const storagePathsToClean = collectProductStoragePaths(product);
           await deleteProductFromFirestore(product.id);
+          if (storagePathsToClean.length > 0) {
+            const remainingProducts = products.filter((p) => p.id !== product.id);
+            cleanupUnusedStorageImages(storagePathsToClean, remainingProducts).catch((err) =>
+              console.warn('Deleted product storage cleanup warning:', err)
+            );
+          }
           addToast('info', 'Product Deleted', `${product.name} removed from catalog.`);
         } catch {
           addToast('error', 'Delete Failed', 'Could not delete this product.');
@@ -445,7 +891,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
         <div className="fixed inset-0 z-50 flex justify-end">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
-            onClick={() => setModalOpen(false)}
+            onClick={closeModal}
           />
           <form
             onSubmit={handleSave}
@@ -457,8 +903,9 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
               </h2>
               <button
                 type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                onClick={closeModal}
+                disabled={saving || isUploadingBatch || replacingIndex !== null}
+                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -781,86 +1228,394 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                 </div>
               </div>
 
-              {/* Images Manager */}
-              <div className="space-y-3">
-                <label className="block font-medium text-zinc-700 dark:text-zinc-300">
-                  Product Images (max 8)
-                </label>
+              {/* Permanent Firebase Cloud Storage Image Manager */}
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <label className="block font-semibold text-zinc-800 dark:text-zinc-200">
+                      Product Images — Firebase Cloud Storage ({form.images.length}/{MAX_PRODUCT_IMAGES})
+                    </label>
+                    <p className="text-[11px] text-zinc-500 mt-0.5">
+                      JPG, JPEG, PNG, or WEBP up to 5 MB each · Stored permanently at{' '}
+                      <span className="font-mono text-[10px]">products/{form.id || '{productId}'}/</span>
+                    </p>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                  {form.images.map((img, idx) => (
-                    <div key={`${img}-${idx}`} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                      <ResilientImage src={img} alt="Product preview" className="w-full h-full object-cover" />
+                {/* Hidden single-file input for in-place image replacement */}
+                <input
+                  ref={replaceInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={handleReplaceFileChange}
+                  className="hidden"
+                />
+
+                {/* Inline Upload Status / Error Feedback */}
+                {uploadFeedback && (
+                  <div
+                    className={`flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl border text-[11px] leading-relaxed ${
+                      uploadFeedback.type === 'success'
+                        ? 'bg-emerald-50/90 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-red-50/90 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300'
+                    }`}
+                  >
+                    {uploadFeedback.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    )}
+                    <span className="flex-1">{uploadFeedback.message}</span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadFeedback(null)}
+                      className="opacity-70 hover:opacity-100 cursor-pointer"
+                      aria-label="Dismiss message"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Drag & Drop / Multi-File Picker */}
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingFiles(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDraggingFiles(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingFiles(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      stageFilesForUpload(e.dataTransfer.files);
+                    }
+                  }}
+                  className={`rounded-xl border-2 border-dashed p-4 text-center transition-colors ${
+                    isDraggingFiles
+                      ? 'border-zinc-900 dark:border-white bg-zinc-100/80 dark:bg-zinc-800/70'
+                      : 'border-zinc-300 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-950/40'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-200/80 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-300">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                        Select or drag &amp; drop product images
+                      </p>
+                      <p className="text-[11px] text-zinc-500">
+                        Supports multiple JPG, JPEG, PNG, WEBP images (max 5 MB each)
+                      </p>
+                    </div>
+                    <label
+                      className={`mt-1 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-medium text-xs transition-opacity ${
+                        form.images.length + stagedUploads.length >= MAX_PRODUCT_IMAGES || isUploadingBatch
+                          ? 'opacity-50 pointer-events-none'
+                          : 'hover:opacity-90 cursor-pointer'
+                      }`}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Choose Images</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        disabled={
+                          form.images.length + stagedUploads.length >= MAX_PRODUCT_IMAGES ||
+                          isUploadingBatch
+                        }
+                        onChange={handleFileInputChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Pre-Upload Staged Previews & Progress Queue */}
+                {stagedUploads.length > 0 && (
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/60 p-3.5 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                          Ready to Upload ({stagedUploads.length})
+                        </span>
+                        <span className="text-[11px] text-zinc-500">
+                          Preview before permanent Cloud Storage upload
+                        </span>
+                      </div>
                       <button
                         type="button"
-                        onClick={() =>
-                          setForm({ ...form, images: form.images.filter((_, i) => i !== idx) })
-                        }
-                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center cursor-pointer"
+                        disabled={isUploadingBatch}
+                        onClick={() => uploadStagedItems()}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-medium text-[11px] hover:opacity-90 disabled:opacity-50 cursor-pointer"
                       >
-                        <X className="w-3 h-3" />
+                        {isUploadingBatch ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Uploading to Cloud...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Cloud className="w-3.5 h-3.5" />
+                            <span>
+                              Upload {stagedUploads.length} Image{stagedUploads.length > 1 ? 's' : ''} to Cloud Storage
+                            </span>
+                          </>
+                        )}
                       </button>
                     </div>
-                  ))}
-                </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-zinc-400 cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploadingImage ? 'Uploading...' : 'Upload to Firebase Storage'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      disabled={uploadingImage}
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {stagedUploads.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden flex flex-col"
+                        >
+                          <div className="relative aspect-[3/4] bg-zinc-100 dark:bg-zinc-800">
+                            <img
+                              src={item.previewUrl}
+                              alt={item.file.name}
+                              className="w-full h-full object-cover"
+                            />
+                            {item.status !== 'uploading' && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveStaged(item.id)}
+                                title="Remove preview"
+                                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/75 text-white flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {item.status === 'uploading' && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center px-3 text-white gap-2">
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span className="text-[11px] font-mono font-semibold">
+                                  {item.progress}%
+                                </span>
+                                <div className="w-full h-1.5 rounded-full bg-white/25 overflow-hidden">
+                                  <div
+                                    className="h-full bg-white transition-all duration-150"
+                                    style={{ width: `${item.progress}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-2 space-y-1">
+                            <p className="text-[11px] font-medium text-zinc-800 dark:text-zinc-200 truncate">
+                              {item.file.name}
+                            </p>
+                            <div className="flex items-center justify-between text-[10px] text-zinc-500">
+                              <span>{formatFileSize(item.file.size)}</span>
+                              <span
+                                className={
+                                  item.status === 'error'
+                                    ? 'text-red-600 dark:text-red-400 font-medium'
+                                    : item.status === 'uploading'
+                                      ? 'text-sky-600 dark:text-sky-400 font-medium'
+                                      : 'text-amber-600 dark:text-amber-400 font-medium'
+                                }
+                              >
+                                {item.status === 'uploading'
+                                  ? `Uploading ${item.progress}%`
+                                  : item.status === 'error'
+                                    ? 'Failed'
+                                    : 'Pending upload'}
+                              </span>
+                            </div>
+                            {item.error && (
+                              <div className="pt-1 space-y-1">
+                                <p className="text-[10px] text-red-600 dark:text-red-400 leading-snug line-clamp-2">
+                                  {item.error}
+                                </p>
+                                <button
+                                  type="button"
+                                  disabled={isUploadingBatch}
+                                  onClick={() => uploadStagedItems([item.id])}
+                                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-zinc-900 dark:text-white hover:underline cursor-pointer"
+                                >
+                                  <RefreshCw className="w-3 h-3" />
+                                  <span>Retry Upload</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                <div className="flex flex-wrap sm:flex-nowrap gap-2">
-                  <input
-                    type="text"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Or paste image URL..."
-                    className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newImageUrl.trim()) return;
-                      setForm({ ...form, images: [...form.images, newImageUrl.trim()].slice(0, 8) });
-                      setNewImageUrl('');
-                    }}
-                    className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer shrink-0"
-                  >
-                    Add URL
-                  </button>
-                </div>
+                {/* Saved / Uploaded Product Image Gallery */}
+                {form.images.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                        Product Gallery (First image is shown as Primary on Storefront)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {form.images.map((img, idx) => {
+                        const isPrimary = idx === 0;
+                        const storagePath = form.imagePaths?.[idx] || extractStoragePathFromUrl(img) || '';
+                        const isCloudStored = Boolean(storagePath);
+                        const isReplacingThis = replacingIndex === idx;
 
-                {/* Quick Studio Media Library Picker */}
-                <div className="space-y-1.5">
-                  <p className="text-[11px] text-zinc-500 flex items-center gap-1.5">
-                    <ImageIcon className="w-3 h-3" />
-                    <span>Atelier Studio Media Library</span>
+                        return (
+                          <div
+                            key={`${img}-${idx}`}
+                            className={`rounded-xl overflow-hidden border transition-all bg-white dark:bg-zinc-900 flex flex-col ${
+                              isPrimary
+                                ? 'border-zinc-950 dark:border-white ring-1 ring-zinc-950/20 dark:ring-white/25'
+                                : 'border-zinc-200 dark:border-zinc-700'
+                            }`}
+                          >
+                            <div className="relative aspect-[3/4] bg-zinc-100 dark:bg-zinc-800">
+                              <ResilientImage
+                                src={img}
+                                alt={`Product image ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+
+                              {/* Primary / Cloud badges */}
+                              <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                                {isPrimary && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-950/90 text-white text-[9px] font-semibold uppercase tracking-wider shadow-xs">
+                                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                    Primary
+                                  </span>
+                                )}
+                                {isCloudStored && (
+                                  <span
+                                    title={storagePath}
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-950/80 text-emerald-200 text-[9px] font-medium backdrop-blur-xs"
+                                  >
+                                    <Cloud className="w-2.5 h-2.5" />
+                                    Cloud
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Replacing upload progress overlay */}
+                              {isReplacingThis && (
+                                <div className="absolute inset-0 bg-black/65 backdrop-blur-[2px] flex flex-col items-center justify-center px-3 text-white gap-2">
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  <span className="text-[11px] font-mono font-semibold">
+                                    Replacing {replaceProgress}%
+                                  </span>
+                                  <div className="w-full h-1.5 rounded-full bg-white/25 overflow-hidden">
+                                    <div
+                                      className="h-full bg-white transition-all duration-150"
+                                      style={{ width: `${replaceProgress}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action Controls: Set Primary, Replace, Remove */}
+                            <div className="p-2 flex flex-wrap items-center gap-1.5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/50">
+                              {!isPrimary && (
+                                <button
+                                  type="button"
+                                  disabled={isReplacingThis || isUploadingBatch}
+                                  onClick={() => handleSetPrimaryImage(idx)}
+                                  title="Set as Primary Image"
+                                  className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 disabled:opacity-40 cursor-pointer"
+                                >
+                                  <Star className="w-3 h-3" />
+                                  <span>Primary</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                disabled={replacingIndex !== null || isUploadingBatch}
+                                onClick={() => handleTriggerReplaceImage(idx)}
+                                title="Replace image in Firebase Cloud Storage"
+                                className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 disabled:opacity-40 cursor-pointer"
+                              >
+                                <RefreshCw className="w-3 h-3" />
+                                <span>Replace</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isReplacingThis || isUploadingBatch}
+                                onClick={() => handleRemoveImage(idx)}
+                                title="Remove image"
+                                aria-label={`Remove product image ${idx + 1}`}
+                                className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 border border-red-200/70 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/25 disabled:opacity-40 cursor-pointer shrink-0"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-zinc-500 italic">
+                    No permanent product images added yet. Upload images above to store them in Firebase Cloud Storage.
                   </p>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {STUDIO_MEDIA_LIBRARY.slice(2).map((m) => (
-                      <button
-                        type="button"
-                        key={m.url}
-                        onClick={() => {
-                          if (!form.images.includes(m.url)) {
-                            setForm({ ...form, images: [...form.images, m.url].slice(0, 8) });
-                          }
-                        }}
-                        title={m.label}
-                        className="w-12 h-16 rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 shrink-0 hover:ring-2 hover:ring-zinc-900 dark:hover:ring-white cursor-pointer"
-                      >
-                        <img src={m.url} alt={m.label} className="w-full h-full object-cover" />
-                      </button>
-                    ))}
+                )}
+
+                {/* Optional Direct HTTPS URL & Studio Media Library */}
+                <div className="pt-2 border-t border-zinc-200/70 dark:border-zinc-800/80 space-y-3">
+                  <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                    <input
+                      type="url"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="Or paste an existing HTTPS image URL..."
+                      className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddExternalUrl}
+                      className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer shrink-0"
+                    >
+                      Add URL
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] text-zinc-500 flex items-center gap-1.5">
+                      <ImageIcon className="w-3 h-3" />
+                      <span>Atelier Studio Media Library (Optional Presets)</span>
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {STUDIO_MEDIA_LIBRARY.slice(2).map((m) => (
+                        <button
+                          type="button"
+                          key={m.url}
+                          onClick={() => {
+                            if (
+                              !form.images.includes(m.url) &&
+                              form.images.length < MAX_PRODUCT_IMAGES
+                            ) {
+                              const prevPaths = form.images.map(
+                                (url, i) => form.imagePaths?.[i] || extractStoragePathFromUrl(url) || ''
+                              );
+                              setForm({
+                                ...form,
+                                images: [...form.images, m.url].slice(0, MAX_PRODUCT_IMAGES),
+                                imagePaths: [...prevPaths, ''].slice(0, MAX_PRODUCT_IMAGES),
+                              });
+                            }
+                          }}
+                          title={m.label}
+                          className="w-12 h-16 rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700 shrink-0 hover:ring-2 hover:ring-zinc-900 dark:hover:ring-white cursor-pointer"
+                        >
+                          <img src={m.url} alt={m.label} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -869,17 +1624,27 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
             <div className="px-4 sm:px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
-                onClick={() => setModalOpen(false)}
-                className="px-4 py-2 text-xs font-medium rounded-lg border border-zinc-300 dark:border-zinc-700 cursor-pointer"
+                onClick={closeModal}
+                disabled={saving || isUploadingBatch || replacingIndex !== null}
+                className="px-4 py-2 text-xs font-medium rounded-lg border border-zinc-300 dark:border-zinc-700 disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={saving}
-                className="px-5 py-2 text-xs font-medium rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 disabled:opacity-50 cursor-pointer"
+                disabled={saving || isUploadingBatch || replacingIndex !== null}
+                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-medium rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 disabled:opacity-50 cursor-pointer"
               >
-                {saving ? 'Saving...' : isEditing ? 'Save Product' : 'Create Product'}
+                {(saving || isUploadingBatch) && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>
+                  {isUploadingBatch
+                    ? 'Uploading Images...'
+                    : saving
+                      ? 'Saving...'
+                      : isEditing
+                        ? 'Save Product'
+                        : 'Create Product'}
+                </span>
               </button>
             </div>
           </form>

@@ -22,18 +22,19 @@ export function AdminWebsite() {
     field: 'heroImage' | 'editorialImage'
   ) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     setUploadingField(field);
     try {
       const url = await uploadImageToStorage(file, 'banners');
       setForm((prev) => ({ ...prev, [field]: url }));
-      addToast('success', 'Banner Uploaded', 'Image saved to Firebase Storage.');
-    } catch {
-      addToast(
-        'error',
-        'Storage Upload Unavailable',
-        'Pick from the Studio Media presets or paste an image URL.'
-      );
+      addToast('success', 'Banner Uploaded', 'Image permanently saved to Firebase Cloud Storage.');
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Unable to upload banner to Firebase Cloud Storage.';
+      addToast('error', 'Cloud Storage Upload Failed', msg);
     } finally {
       setUploadingField(null);
     }
@@ -173,7 +174,7 @@ export function AdminWebsite() {
             <input
               type="text"
               required
-              maxLength={500}
+              maxLength={1500}
               value={form.heroImage}
               onChange={(e) => setForm({ ...form, heroImage: e.target.value })}
               className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent text-sm"
@@ -191,7 +192,7 @@ export function AdminWebsite() {
               <span>{uploadingField === 'heroImage' ? 'Uploading...' : 'Upload Hero Banner'}</span>
               <input
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                 onChange={(e) => handleUploadBanner(e, 'heroImage')}
                 className="hidden"
               />
