@@ -318,7 +318,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                 <th className="py-3.5 px-3 font-medium text-right">Price</th>
                 <th className="py-3.5 px-3 font-medium text-right">Stock</th>
                 <th className="py-3.5 px-3 font-medium">Status</th>
-                <th className="py-3.5 px-5 text-right font-medium">Actions</th>
+                <th className="py-3.5 px-5 text-right font-medium min-w-[132px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
@@ -410,21 +410,25 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                       {p.status}
                     </span>
                   </td>
-                  <td className="py-3.5 px-5 text-right">
-                    <div className="inline-flex items-center gap-1">
+                  <td className="py-3.5 px-5 text-right align-middle whitespace-nowrap min-w-[132px]">
+                    <div className="inline-flex items-center justify-end gap-2.5 sm:gap-3 flex-nowrap">
                       <button
+                        type="button"
                         onClick={() => openEditModal(p)}
-                        aria-label={`Edit ${p.name}`}
-                        className="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                        title="Edit Product"
+                        aria-label={`Edit Product: ${p.name}`}
+                        className="inline-flex items-center justify-center w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-[10px] bg-zinc-100/90 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-700/80 hover:bg-sky-50 hover:text-slate-900 hover:border-sky-200 dark:hover:bg-sky-500/15 dark:hover:text-sky-200 dark:hover:border-sky-400/40 hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 transition-all duration-200 ease-out cursor-pointer"
                       >
-                        <Edit3 className="w-3.5 h-3.5" />
+                        <Edit3 className="w-[19px] h-[19px] shrink-0" strokeWidth={1.85} />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(p)}
-                        aria-label={`Delete ${p.name}`}
-                        className="p-2 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                        title="Delete Product"
+                        aria-label={`Delete Product: ${p.name}`}
+                        className="inline-flex items-center justify-center w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 rounded-[10px] bg-red-50/90 dark:bg-red-500/12 text-red-600 dark:text-red-400 border border-red-200/75 dark:border-red-500/25 hover:bg-red-100 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-500/25 dark:hover:text-red-300 dark:hover:border-red-400/50 hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 transition-all duration-200 ease-out cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-[19px] h-[19px] shrink-0" strokeWidth={1.85} />
                       </button>
                     </div>
                   </td>
