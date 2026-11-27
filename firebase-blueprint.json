@@ -1,0 +1,295 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A premium men's T-shirt in the KOVA ATELIER catalog.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 2, "maxLength": 120 },
+        "slug": { "type": "string", "minLength": 2, "maxLength": 140, "pattern": "^[a-z0-9\\-]+$" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Oversized T-Shirts",
+            "Regular Fit T-Shirts",
+            "Graphic T-Shirts",
+            "Printed T-Shirts",
+            "Plain T-Shirts",
+            "Premium Cotton T-Shirts"
+          ]
+        },
+        "description": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "fabricInfo": { "type": "string", "maxLength": 500 },
+        "price": { "type": "integer", "description": "Base price in whole USD" },
+        "discountPrice": { "type": "integer", "description": "Optional sale price in whole USD, 0 means no discount" },
+        "sku": { "type": "string", "minLength": 3, "maxLength": 40, "pattern": "^[A-Z0-9\\-]+$" },
+        "sizes": { "type": "array", "description": "Available sizes, max 10" },
+        "colors": { "type": "array", "description": "Available color objects { name, hex }, max 10" },
+        "images": { "type": "array", "description": "Product image paths or URLs, max 8" },
+        "stockQuantity": { "type": "integer" },
+        "variantStock": { "type": "object", "description": "Map of Size_Color keys to stock integers" },
+        "featured": { "type": "boolean" },
+        "newArrival": { "type": "boolean" },
+        "bestSeller": { "type": "boolean" },
+        "badge": {
+          "type": "string",
+          "enum": ["", "BESTSELLER", "TRENDING", "NEW ARRIVAL", "LIMITED EDITION", "SALE", "LOW STOCK"]
+        },
+        "status": { "type": "string", "enum": ["active", "draft", "archived"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "name",
+        "slug",
+        "category",
+        "description",
+        "fabricInfo",
+        "price",
+        "discountPrice",
+        "sku",
+        "sizes",
+        "colors",
+        "images",
+        "stockQuantity",
+        "variantStock",
+        "featured",
+        "newArrival",
+        "bestSeller",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer purchase order with server-validated line item totals.",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "minLength": 4, "maxLength": 32, "pattern": "^[A-Z0-9\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "customerName": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "customerEmail": { "type": "string", "format": "email", "maxLength": 120 },
+        "customerPhone": { "type": "string", "minLength": 6, "maxLength": 30 },
+        "shippingAddress": { "type": "object", "description": "{ address, city, state, postalCode }" },
+        "items": { "type": "array", "description": "1 to 8 line items" },
+        "subtotal": { "type": "integer" },
+        "promoCode": { "type": "string", "maxLength": 32 },
+        "discountAmount": { "type": "integer" },
+        "shippingCost": { "type": "integer" },
+        "total": { "type": "integer" },
+        "paymentMethod": { "type": "string", "enum": ["cod", "bank_transfer"] },
+        "paymentStatus": { "type": "string", "enum": ["pending", "verified", "refunded"] },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"]
+        },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "orderNumber",
+        "userId",
+        "customerName",
+        "customerEmail",
+        "customerPhone",
+        "shippingAddress",
+        "items",
+        "subtotal",
+        "promoCode",
+        "discountAmount",
+        "shippingCost",
+        "total",
+        "paymentMethod",
+        "paymentStatus",
+        "status",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private customer profile containing PII and wishlist.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 120 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 80 },
+        "postalCode": { "type": "string", "maxLength": 20 },
+        "wishlist": { "type": "array", "description": "Max 50 product IDs" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email", "phone", "address", "city", "state", "postalCode", "wishlist", "createdAt", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted administrator membership document verifying admin role in Firestore.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["admin"] },
+        "grantedBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "grantedBy", "createdAt"]
+    },
+    "Promotion": {
+      "title": "Promotion",
+      "description": "Discount promotion code managed by administrators.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "minLength": 3, "maxLength": 32, "pattern": "^[A-Z0-9\\-_]+$" },
+        "type": { "type": "string", "enum": ["percentage", "fixed"] },
+        "value": { "type": "integer" },
+        "minOrderAmount": { "type": "integer" },
+        "expiresAt": { "type": "string", "maxLength": 40 },
+        "active": { "type": "boolean" },
+        "usageCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "type", "value", "minOrderAmount", "expiresAt", "active", "usageCount", "createdAt", "updatedAt"]
+    },
+    "InventoryLog": {
+      "title": "InventoryLog",
+      "description": "Immutable stock adjustment audit log.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "productName": { "type": "string", "maxLength": 120 },
+        "sku": { "type": "string", "maxLength": 40 },
+        "size": { "type": "string", "maxLength": 20 },
+        "color": { "type": "string", "maxLength": 40 },
+        "previousStock": { "type": "integer" },
+        "change": { "type": "integer" },
+        "newStock": { "type": "integer" },
+        "reason": { "type": "string", "maxLength": 200 },
+        "performedBy": { "type": "string", "maxLength": 120 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "productName", "sku", "size", "color", "previousStock", "change", "newStock", "reason", "performedBy", "createdAt"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global storefront configuration and banners.",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "maxLength": 80 },
+        "tagline": { "type": "string", "maxLength": 160 },
+        "logoText": { "type": "string", "maxLength": 40 },
+        "heroTitle": { "type": "string", "maxLength": 120 },
+        "heroSubtitle": { "type": "string", "maxLength": 300 },
+        "heroCtaText": { "type": "string", "maxLength": 40 },
+        "heroImage": { "type": "string", "maxLength": 500 },
+        "promoBannerText": { "type": "string", "maxLength": 180 },
+        "promoBannerActive": { "type": "boolean" },
+        "editorialTitle": { "type": "string", "maxLength": 120 },
+        "editorialSubtitle": { "type": "string", "maxLength": 300 },
+        "editorialImage": { "type": "string", "maxLength": 500 },
+        "contactEmail": { "type": "string", "maxLength": 120 },
+        "contactPhone": { "type": "string", "maxLength": 30 },
+        "whatsappNumber": { "type": "string", "maxLength": 30 },
+        "instagramUrl": { "type": "string", "maxLength": 200 },
+        "pinterestUrl": { "type": "string", "maxLength": 200 },
+        "twitterUrl": { "type": "string", "maxLength": 200 },
+        "freeShippingThreshold": { "type": "integer" },
+        "standardShippingCost": { "type": "integer" },
+        "lowStockThreshold": { "type": "integer" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "storeName",
+        "tagline",
+        "logoText",
+        "heroTitle",
+        "heroSubtitle",
+        "heroCtaText",
+        "heroImage",
+        "promoBannerText",
+        "promoBannerActive",
+        "editorialTitle",
+        "editorialSubtitle",
+        "editorialImage",
+        "contactEmail",
+        "contactPhone",
+        "whatsappNumber",
+        "instagramUrl",
+        "pinterestUrl",
+        "twitterUrl",
+        "freeShippingThreshold",
+        "standardShippingCost",
+        "updatedAt"
+      ]
+    },
+    "AdminNotification": {
+      "title": "AdminNotification",
+      "description": "Real-time notification feed for store administrators.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["new_order", "low_stock", "order_status"] },
+        "title": { "type": "string", "maxLength": 120 },
+        "message": { "type": "string", "maxLength": 300 },
+        "relatedId": { "type": "string", "maxLength": 128 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "title", "message", "relatedId", "read", "createdAt"]
+    },
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "Customer newsletter subscription.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "maxLength": 120 },
+        "subscribedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "subscribedAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Storefront clothing catalog; publicly readable when active, admin-only write."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders with backend-enforced price and total validation."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Isolated customer PII profiles and wishlists; accessible only to owner or admin."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Trusted admin access roster."
+    },
+    "/promotions/{promoCode}": {
+      "schema": { "$ref": "#/entities/Promotion" },
+      "description": "Discount codes; exact-code lookup allowed, listing and mutation restricted to admins."
+    },
+    "/inventoryLogs/{logId}": {
+      "schema": { "$ref": "#/entities/InventoryLog" },
+      "description": "Admin-only stock adjustment history."
+    },
+    "/siteSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteSettings" },
+      "description": "Storefront banners, brand details, and contact links."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/AdminNotification" },
+      "description": "Admin notifications for new orders, low stock, and status updates."
+    },
+    "/newsletter/{subscriberId}": {
+      "schema": { "$ref": "#/entities/NewsletterSubscriber" },
+      "description": "Newsletter signups; write-only for public, admin-only read."
+    }
+  }
+}

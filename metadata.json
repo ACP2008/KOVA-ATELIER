@@ -1,0 +1,8 @@
+{
+  "name": "KOVA ATELIER",
+  "description": "Minimalist luxury clothing e-commerce storefront with real-time Firebase backend and glassmorphism admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
