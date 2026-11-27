@@ -39,9 +39,9 @@ function AppRouter() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA] text-[#0A0A0A]">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col bg-[#FAFAFA] text-[#0A0A0A]">
       <Header />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 w-full">
         {route.name === 'home' && <HomePage />}
         {route.name === 'shop' && <ShopPage />}
         {route.name === 'product' && <ProductDetailPage productId={route.id} />}

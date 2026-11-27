@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import { MENS_CATEGORIES } from '../../data/seedCatalog';
 import { ResilientImage } from '../ui/ResilientImage';
 
 export function Header() {
@@ -21,6 +22,15 @@ export function Header() {
   const [promoDismissed, setPromoDismissed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!mobileMenuOpen && !searchOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileMenuOpen, searchOpen]);
 
   const filteredSearch = searchQuery.trim()
     ? activeProducts.filter(
@@ -64,46 +74,49 @@ export function Header() {
 
   return (
     <>
-      <div className="sticky top-0 z-40">
+      <div className="sticky top-0 z-40 w-full max-w-full">
         {siteSettings.promoBannerActive && !promoDismissed && siteSettings.promoBannerText && (
-          <div className="bg-zinc-950 text-zinc-100 text-xs py-2 px-4 flex items-center justify-center relative">
-            <p className="truncate pr-8 tracking-wide text-center">
+          <div className="bg-zinc-950 text-zinc-100 text-[11px] sm:text-xs py-1.5 sm:py-2 px-9 flex items-center justify-center relative w-full">
+            <p className="truncate tracking-wide text-center max-w-full">
               {siteSettings.promoBannerText}
             </p>
             <button
               onClick={() => setPromoDismissed(true)}
               aria-label="Dismiss announcement"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 transition-colors"
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1.5 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        <header className="glass-nav border-b border-zinc-200/70">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-8">
-            {/* Zone 1: Single text element wordmark */}
-            <div className="flex items-center gap-3 shrink-0">
+        <header className="glass-nav border-b border-zinc-200/70 w-full">
+          <div className="max-w-[1440px] w-full mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4 lg:gap-8">
+            {/* Zone 1: Hamburger (mobile) + Single text element wordmark */}
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink">
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(true)}
                 aria-label="Open navigation menu"
-                className="md:hidden p-2 -ml-2 text-zinc-800 hover:text-black"
+                className="md:hidden inline-flex items-center justify-center w-9 h-9 -ml-1 rounded-lg text-zinc-800 hover:text-black hover:bg-zinc-100/80 transition-colors shrink-0 cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>
               <button
+                type="button"
                 onClick={() => navigate({ name: 'home' })}
-                className="font-display text-2xl font-semibold tracking-[0.14em] text-zinc-950 whitespace-nowrap shrink-0 cursor-pointer"
+                className="font-display text-[15px] min-[376px]:text-[17px] sm:text-xl md:text-2xl font-semibold tracking-[0.09em] min-[376px]:tracking-[0.12em] md:tracking-[0.14em] text-zinc-950 whitespace-nowrap truncate cursor-pointer"
               >
                 {siteSettings.logoText || 'KOVA ATELIER'}
               </button>
             </div>
 
-            {/* Zone 2: 4-5 clean single-line text links */}
-            <nav className="hidden md:flex items-center gap-7" aria-label="Primary navigation">
+            {/* Zone 2: 4-5 clean single-line text links (tablet/desktop) */}
+            <nav className="hidden md:flex items-center gap-5 lg:gap-7" aria-label="Primary navigation">
               {navItems.map((item) => (
                 <button
                   key={item.label}
+                  type="button"
                   onClick={item.action}
                   className={`text-sm font-medium transition-colors whitespace-nowrap shrink-0 relative py-1 cursor-pointer ${
                     item.active
@@ -117,38 +130,43 @@ export function Header() {
             </nav>
 
             {/* Zone 3: Compact utility icons + single primary Shopping Bag action */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0">
               <button
+                type="button"
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search catalog"
-                className="p-2 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100/70 transition-colors cursor-pointer shrink-0"
               >
                 <Search className="w-[18px] h-[18px]" />
               </button>
               <button
+                type="button"
                 onClick={() => navigate({ name: 'wishlist' })}
                 aria-label="Saved wishlist"
-                className="p-2 text-zinc-700 hover:text-zinc-950 transition-colors relative cursor-pointer"
+                className="hidden min-[431px]:inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100/70 transition-colors relative cursor-pointer shrink-0"
               >
                 <Heart className="w-[18px] h-[18px]" />
                 {wishlist.length > 0 && (
-                  <span className="absolute top-1 right-1 text-[10px] font-mono font-medium leading-none text-zinc-950">
+                  <span className="absolute top-1.5 right-1.5 text-[10px] font-mono font-semibold leading-none text-zinc-950">
                     {wishlist.length}
                   </span>
                 )}
               </button>
               <button
+                type="button"
                 onClick={() => navigate({ name: 'account', tab: 'orders' })}
                 aria-label={user ? 'My account' : 'Sign in'}
-                className="hidden sm:inline-flex p-2 text-zinc-700 hover:text-zinc-950 transition-colors cursor-pointer"
+                className="hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-lg text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100/70 transition-colors cursor-pointer shrink-0"
               >
                 <User className="w-[18px] h-[18px]" />
               </button>
               <button
+                type="button"
                 onClick={() => setCartOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-950 text-white text-xs font-medium rounded-lg hover:bg-zinc-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                aria-label={`Open shopping bag, ${cartCount} items`}
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 min-[376px]:px-3 sm:px-4 py-2 bg-zinc-950 text-white text-[11px] sm:text-xs font-medium rounded-lg hover:bg-zinc-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
-                <ShoppingBag className="w-3.5 h-3.5" />
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
                 <span>Bag</span>
                 <span className="font-mono tabular-nums">({cartCount})</span>
               </button>
@@ -159,67 +177,110 @@ export function Header() {
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex">
+        <div className="fixed inset-0 z-50 md:hidden flex" role="dialog" aria-modal="true" aria-label="Mobile navigation">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/45 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-6 border-b border-zinc-200">
-              <span className="font-display text-xl font-semibold tracking-[0.14em]">
-                {siteSettings.logoText}
+          <div className="relative w-80 max-w-[86vw] bg-white/95 backdrop-blur-2xl h-[100dvh] flex flex-col shadow-2xl border-r border-zinc-200/80">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200/80 shrink-0">
+              <span className="font-display text-lg font-semibold tracking-[0.14em] text-zinc-950">
+                {siteSettings.logoText || 'KOVA ATELIER'}
               </span>
               <button
+                type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close navigation menu"
-                className="p-2 text-zinc-500 hover:text-zinc-900"
+                className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex flex-col gap-1 py-6">
-              {navItems.map((item) => (
+
+            <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+              <div className="flex flex-col gap-1">
+                {navItems.map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      item.action();
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`text-left py-3 px-3.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                      item.active ? 'bg-zinc-950 text-white' : 'text-zinc-700 hover:bg-zinc-100'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-200/80 space-y-1">
+                <p className="px-3.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+                  T-Shirt Categories
+                </p>
+                {MENS_CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => {
+                      navigate({ name: 'shop', category });
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left py-2.5 px-3.5 rounded-xl text-sm text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100/80 transition-colors cursor-pointer"
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-200/80 flex flex-col gap-1">
                 <button
-                  key={item.label}
+                  type="button"
                   onClick={() => {
-                    item.action();
+                    navigate({ name: 'wishlist' });
                     setMobileMenuOpen(false);
                   }}
-                  className={`text-left py-3 px-3 rounded-lg text-sm font-medium transition-colors ${
-                    item.active ? 'bg-zinc-100 text-zinc-950' : 'text-zinc-600 hover:bg-zinc-50'
-                  }`}
+                  className="flex items-center justify-between py-3 px-3.5 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
                 >
-                  {item.label}
+                  <span>Saved Wishlist</span>
+                  <span className="font-mono text-xs tabular-nums text-zinc-500">({wishlist.length})</span>
                 </button>
-              ))}
-              <button
-                onClick={() => {
-                  navigate({ name: 'account', tab: 'orders' });
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left py-3 px-3 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
-              >
-                Account & Orders
-              </button>
-              <button
-                onClick={() => {
-                  navigate({ name: 'wishlist' });
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left py-3 px-3 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
-              >
-                Wishlist ({wishlist.length})
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate({ name: 'account', tab: 'orders' });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-left py-3 px-3.5 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+                >
+                  Account &amp; Orders
+                </button>
+              </div>
             </div>
-            <div className="mt-auto pt-6 border-t border-zinc-200">
+
+            <div className="px-5 py-4 border-t border-zinc-200/80 flex items-center justify-between shrink-0 bg-zinc-50/70">
               <button
+                type="button"
                 onClick={() => {
                   navigate({ name: 'admin', section: 'overview' });
                   setMobileMenuOpen(false);
                 }}
-                className="text-xs text-zinc-500 hover:text-zinc-900 transition-colors"
+                className="text-xs font-medium text-zinc-500 hover:text-zinc-950 transition-colors cursor-pointer"
               >
                 Admin Portal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setCartOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-950 text-white text-xs font-medium cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Bag ({cartCount})</span>
               </button>
             </div>
           </div>
@@ -229,33 +290,33 @@ export function Header() {
       {/* Search Overlay */}
       {searchOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-start justify-center pt-16 sm:pt-24 px-4"
+          className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-start justify-center pt-10 sm:pt-24 px-3 sm:px-4"
           onClick={() => setSearchOpen(false)}
         >
           <div
             className="w-full max-w-2xl bg-white/95 backdrop-blur-xl border border-zinc-200 rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-zinc-200">
-              <Search className="w-5 h-5 text-zinc-400 shrink-0" />
+            <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-5 py-3 sm:py-4 border-b border-zinc-200">
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400 shrink-0" />
               <input
                 type="text"
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search oversized, regular fit, graphic, plain T-shirts, or SKU..."
-                className="w-full bg-transparent text-sm text-zinc-950 placeholder:text-zinc-400 focus:outline-none"
+                placeholder="Search oversized, regular fit, graphic, plain T-shirts..."
+                className="w-full min-w-0 bg-transparent text-base sm:text-sm text-zinc-950 placeholder:text-zinc-400 focus:outline-none"
               />
               <button
                 onClick={() => setSearchOpen(false)}
                 aria-label="Close search"
-                className="p-1.5 text-zinc-400 hover:text-zinc-900"
+                className="p-2 text-zinc-400 hover:text-zinc-900 shrink-0 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-5 max-h-[60vh] overflow-y-auto">
+            <div className="p-4 sm:p-5 max-h-[68dvh] overflow-y-auto">
               <p className="text-xs font-medium text-zinc-500 mb-4">
                 {searchQuery.trim()
                   ? `${filteredSearch.length} matching pieces`

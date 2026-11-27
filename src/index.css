@@ -11,10 +11,27 @@
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    max-width: 100%;
   }
 
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
+    max-width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  img,
+  video,
+  svg {
+    max-width: 100%;
   }
 }
 

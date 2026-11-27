@@ -99,12 +99,12 @@ export function AdminOrders({ globalSearch }: AdminOrdersProps) {
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-center gap-1.5">
         {(['All', ...ORDER_STATUSES] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`px-3 sm:px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               statusFilter === s
                 ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950'
                 : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800'
@@ -116,7 +116,7 @@ export function AdminOrders({ globalSearch }: AdminOrdersProps) {
       </div>
 
       {/* Orders Table */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden min-w-0">
         {filteredOrders.length === 0 ? (
           <div className="py-16 text-center px-6">
             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">No orders found</p>
@@ -128,7 +128,7 @@ export function AdminOrders({ globalSearch }: AdminOrdersProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                   <th className="py-3.5 px-5 font-medium">Order #</th>
@@ -213,27 +213,27 @@ export function AdminOrders({ globalSearch }: AdminOrdersProps) {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setSelectedOrder(null)}
           />
-          <aside className="relative w-full max-w-xl bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full flex flex-col shadow-2xl text-xs">
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-              <div>
-                <h2 className="font-mono text-base font-semibold text-zinc-950 dark:text-white">
+          <aside className="relative w-full max-w-[100vw] sm:max-w-xl bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-[100dvh] flex flex-col shadow-2xl text-xs">
+            <div className="px-4 sm:px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2 shrink-0">
+              <div className="min-w-0">
+                <h2 className="font-mono text-base font-semibold text-zinc-950 dark:text-white truncate">
                   {selectedOrder.orderNumber}
                 </h2>
-                <p className="text-zinc-500 mt-0.5">
+                <p className="text-zinc-500 mt-0.5 truncate">
                   Placed {new Date(selectedOrder.createdAt).toLocaleString()}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
               {/* Status Controls */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[376px]:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-zinc-500 mb-1.5">Order Status</label>
                   <select

@@ -123,19 +123,19 @@ export function AccountPage() {
   }
 
   return (
-    <main className="bg-[#FAFAFA] min-h-screen py-12 sm:py-16">
-      <div className="max-w-[1160px] mx-auto px-6 sm:px-10">
+    <main className="bg-[#FAFAFA] min-h-screen py-8 sm:py-16">
+      <div className="max-w-[1160px] mx-auto px-4 sm:px-6 lg:px-10">
         {/* Account Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-8 border-b border-zinc-200/80">
-          <div>
-            <p className="text-xs tracking-[0.18em] uppercase text-zinc-500">Client Portal</p>
-            <h1 className="font-display text-4xl font-medium text-zinc-950 mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-zinc-200/80">
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-zinc-500">Client Portal</p>
+            <h1 className="font-display text-2xl sm:text-4xl font-medium text-zinc-950 mt-1 break-words">
               {userProfile?.displayName || user.displayName || 'Welcome'}
             </h1>
-            <p className="text-xs text-zinc-500 mt-1">{user.email}</p>
+            <p className="text-xs text-zinc-500 mt-1 truncate">{user.email}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             {isAdmin && (
               <button
                 onClick={() => navigate({ name: 'admin', section: 'overview' })}
@@ -156,7 +156,7 @@ export function AccountPage() {
         </div>
 
         {/* Section Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-zinc-200/60 rounded-lg my-8 w-fit">
+        <div className="flex flex-wrap sm:inline-flex items-center gap-1 p-1 bg-zinc-200/60 rounded-lg my-6 sm:my-8 w-full sm:w-fit">
           {(
             [
               { id: 'orders', label: `Order History (${customerOrders.length})` },
@@ -167,7 +167,7 @@ export function AccountPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`flex-1 sm:flex-none text-center px-3 sm:px-4 py-2 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
                 activeTab === tab.id
                   ? 'bg-white text-zinc-950 shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-950'
@@ -199,10 +199,10 @@ export function AccountPage() {
               customerOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white border border-zinc-200/80 rounded-2xl p-6 space-y-5"
+                  className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-6 space-y-5"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-100">
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                  <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-zinc-100">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-zinc-500">
                       <span className="font-mono font-semibold text-sm text-zinc-950">
                         {order.orderNumber}
                       </span>
@@ -267,7 +267,7 @@ export function AccountPage() {
 
         {/* Tab 2: Order Tracking */}
         {activeTab === 'track' && (
-          <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-8 space-y-8">
+          <div className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-8 space-y-6 sm:space-y-8">
             <div className="flex flex-col sm:flex-row gap-3 max-w-lg">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -276,7 +276,7 @@ export function AccountPage() {
                   value={trackQuery}
                   onChange={(e) => setTrackQuery(e.target.value)}
                   placeholder="Enter order number (e.g. KV-2026-1042)"
-                  className="w-full pl-10 pr-4 py-2.5 text-sm font-mono border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full pl-10 pr-4 py-2.5 text-base sm:text-sm font-mono border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
             </div>
@@ -382,9 +382,9 @@ export function AccountPage() {
         {activeTab === 'profile' && (
           <form
             onSubmit={handleSaveProfile}
-            className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-8 max-w-2xl space-y-5"
+            className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-8 max-w-2xl space-y-5"
           >
-            <h2 className="font-display text-2xl font-medium text-zinc-950">
+            <h2 className="font-display text-xl sm:text-2xl font-medium text-zinc-950">
               Saved Profile & Delivery Details
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -395,7 +395,7 @@ export function AccountPage() {
                   maxLength={100}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -405,7 +405,7 @@ export function AccountPage() {
                   maxLength={30}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -415,7 +415,7 @@ export function AccountPage() {
                   maxLength={200}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
               <div>
@@ -425,7 +425,7 @@ export function AccountPage() {
                   maxLength={80}
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
               <div>
@@ -435,7 +435,7 @@ export function AccountPage() {
                   maxLength={80}
                   value={stateRegion}
                   onChange={(e) => setStateRegion(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
               <div>
@@ -445,7 +445,7 @@ export function AccountPage() {
                   maxLength={20}
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
               </div>
             </div>

@@ -189,15 +189,15 @@ export function AdminOverview() {
       </div>
 
       {/* 7-Metric KPI Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-3.5">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
-            className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 flex flex-col justify-between"
+            className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between min-w-0"
           >
-            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">{kpi.label}</p>
+            <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{kpi.label}</p>
             <p
-              className={`font-mono text-2xl font-semibold tabular-nums mt-2 ${
+              className={`font-mono text-xl sm:text-2xl font-semibold tabular-nums mt-2 truncate ${
                 kpi.alert
                   ? 'text-red-600 dark:text-red-400'
                   : kpi.warn
@@ -207,16 +207,16 @@ export function AdminOverview() {
             >
               {kpi.value}
             </p>
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1">{kpi.note}</p>
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 truncate">{kpi.note}</p>
           </div>
         ))}
       </div>
 
       {/* Charts Row 1: Revenue Trends + Orders Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+        <div className="lg:col-span-8 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-5 sm:mb-6">
+            <div className="min-w-0">
               <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
                 Revenue Trends (Last 7 Days)
               </h2>
@@ -224,9 +224,9 @@ export function AdminOverview() {
                 Daily verified & pending gross merchandise value
               </p>
             </div>
-            <span className="text-xs font-mono tabular-nums text-zinc-500">USD</span>
+            <span className="text-xs font-mono tabular-nums text-zinc-500 shrink-0">USD</span>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-56 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueTrendData}>
                 <defs>
@@ -236,8 +236,8 @@ export function AdminOverview() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="date" stroke={axisStroke} fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke={axisStroke} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <XAxis dataKey="date" stroke={axisStroke} fontSize={10} interval="preserveStartEnd" tickLine={false} axisLine={false} />
+                <YAxis width={42} stroke={axisStroke} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: adminDarkMode ? '#18181B' : '#FFFFFF',
@@ -258,7 +258,7 @@ export function AdminOverview() {
           </div>
         </div>
 
-        <div className="lg:col-span-4 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 flex flex-col">
+        <div className="lg:col-span-4 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 flex flex-col min-w-0">
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
               Orders Overview
@@ -312,9 +312,9 @@ export function AdminOverview() {
       </div>
 
       {/* Charts Row 2: Sales Overview by Category + Popular Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+        <div className="lg:col-span-7 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 min-w-0">
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
             <div>
               <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
                 Sales & Stock Value by Category
@@ -324,12 +324,20 @@ export function AdminOverview() {
               </p>
             </div>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-56 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="category" stroke={axisStroke} fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke={axisStroke} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <XAxis
+                  dataKey="category"
+                  stroke={axisStroke}
+                  fontSize={10}
+                  interval="preserveStartEnd"
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: string) => v.replace(' T-Shirts', '')}
+                />
+                <YAxis width={46} stroke={axisStroke} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: adminDarkMode ? '#18181B' : '#FFFFFF',
@@ -349,7 +357,7 @@ export function AdminOverview() {
           </div>
         </div>
 
-        <div className="lg:col-span-5 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 flex flex-col">
+        <div className="lg:col-span-5 glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 flex flex-col min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
@@ -390,7 +398,7 @@ export function AdminOverview() {
       </div>
 
       {/* Recent Orders Quick Table */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 min-w-0">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">Recent Orders</h2>
           <button
@@ -408,7 +416,7 @@ export function AdminOverview() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                   <th className="py-2.5 pr-4 font-medium">Order</th>

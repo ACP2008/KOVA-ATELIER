@@ -83,10 +83,10 @@ export function AdminInventory({ globalSearch }: AdminInventoryProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-zinc-200/70 dark:bg-zinc-800/70 rounded-lg self-start">
+        <div className="flex flex-wrap sm:inline-flex items-center gap-1 p-1 bg-zinc-200/70 dark:bg-zinc-800/70 rounded-lg w-full sm:w-auto self-start">
           <button
             onClick={() => setOnlyLowStock(false)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-md cursor-pointer ${
+            className={`flex-1 sm:flex-none text-center px-3 sm:px-3.5 py-1.5 text-xs font-medium rounded-md cursor-pointer whitespace-nowrap ${
               !onlyLowStock
                 ? 'bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white shadow-xs'
                 : 'text-zinc-600 dark:text-zinc-400'
@@ -96,20 +96,20 @@ export function AdminInventory({ globalSearch }: AdminInventoryProps) {
           </button>
           <button
             onClick={() => setOnlyLowStock(true)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-md inline-flex items-center gap-1.5 cursor-pointer ${
+            className={`flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-1.5 text-xs font-medium rounded-md inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
               onlyLowStock
                 ? 'bg-white dark:bg-zinc-950 text-red-600 dark:text-red-400 shadow-xs'
                 : 'text-zinc-600 dark:text-zinc-400'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             <span>Low Stock ({lowStockCount})</span>
           </button>
         </div>
       </div>
 
       {/* Inventory Matrix Table */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden min-w-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -183,7 +183,7 @@ export function AdminInventory({ globalSearch }: AdminInventoryProps) {
       </div>
 
       {/* Stock Adjustment History Log */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 space-y-4">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-4 min-w-0">
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-zinc-500" />
           <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
@@ -197,7 +197,7 @@ export function AdminInventory({ globalSearch }: AdminInventoryProps) {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                   <th className="py-2.5 pr-4 font-medium">Timestamp</th>
@@ -244,31 +244,31 @@ export function AdminInventory({ globalSearch }: AdminInventoryProps) {
       {/* Adjust Stock Modal */}
       {selectedProduct && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
           onClick={() => setSelectedProduct(null)}
         >
           <form
             onSubmit={handleAdjustSubmit}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-5 shadow-2xl text-xs"
+            className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 space-y-5 shadow-2xl text-xs"
           >
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
                 <h3 className="text-base font-semibold text-zinc-950 dark:text-white">
                   Adjust Variant Stock
                 </h3>
-                <p className="text-zinc-500 mt-0.5">{selectedProduct.name}</p>
+                <p className="text-zinc-500 mt-0.5 truncate">{selectedProduct.name}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedProduct(null)}
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                className="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[376px]:grid-cols-2 gap-3">
               <div>
                 <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                   Size

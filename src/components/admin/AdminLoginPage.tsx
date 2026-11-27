@@ -146,7 +146,7 @@ export function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#070709] text-zinc-100 flex flex-col items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen w-full max-w-full relative overflow-x-clip bg-[#070709] text-zinc-100 flex flex-col items-center justify-center p-3 sm:p-6">
       {/* Subtle Architectural Monochrome Ambient Backdrop */}
       <div
         aria-hidden="true"
@@ -166,27 +166,27 @@ export function AdminLoginPage() {
 
       {/* Main Glassmorphism Card */}
       <div className="relative z-10 w-full max-w-[440px]">
-        <div className="rounded-2xl bg-zinc-900/65 backdrop-blur-2xl border border-white/12 shadow-[0_24px_80px_rgba(0,0,0,0.65)] p-7 sm:p-9 space-y-7">
+        <div className="rounded-2xl bg-zinc-900/65 backdrop-blur-2xl border border-white/12 shadow-[0_24px_80px_rgba(0,0,0,0.65)] p-5 sm:p-9 space-y-6 sm:space-y-7">
           {/* Brand Logo */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-3.5 sm:space-y-4">
             <button
               type="button"
               onClick={() => navigate({ name: 'home' })}
               className="inline-flex flex-col items-center gap-1.5 group cursor-pointer"
             >
-              <span className="font-display text-2xl font-semibold tracking-[0.22em] text-white uppercase">
+              <span className="font-display text-xl sm:text-2xl font-semibold tracking-[0.16em] sm:tracking-[0.22em] text-white uppercase">
                 {siteSettings.logoText || 'KOVA ATELIER'}
               </span>
-              <span className="text-[10px] font-mono uppercase tracking-[0.28em] text-zinc-400 group-hover:text-zinc-200 transition-colors">
+              <span className="text-[10px] font-mono uppercase tracking-[0.24em] sm:tracking-[0.28em] text-zinc-400 group-hover:text-zinc-200 transition-colors">
                 Menswear Administration
               </span>
             </button>
 
-            <div className="pt-2 space-y-1.5">
+            <div className="pt-1 sm:pt-2 space-y-1.5">
               <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white">
                 {resetMode ? 'Reset Admin Password' : 'Welcome Back, Admin'}
               </h1>
-              <p className="text-sm text-zinc-400">
+              <p className="text-xs sm:text-sm text-zinc-400">
                 {resetMode
                   ? 'Enter your administrator email to receive a reset link.'
                   : 'Sign in to manage your store.'}
@@ -262,7 +262,7 @@ export function AdminLoginPage() {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="admin@domain.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-base sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
                   />
                 </div>
               </div>
@@ -315,7 +315,7 @@ export function AdminLoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your admin email"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-base sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
                   />
                 </div>
               </div>
@@ -338,7 +338,7 @@ export function AdminLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full pl-10 pr-11 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
+                    className="w-full pl-10 pr-11 py-3 rounded-xl bg-white/[0.05] border border-white/12 text-base sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/40 focus:bg-white/[0.08] transition-colors"
                   />
                   <button
                     type="button"
@@ -356,7 +356,7 @@ export function AdminLoginPage() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs">
                 <label className="inline-flex items-center gap-2 text-zinc-300 cursor-pointer select-none">
                   <input
                     type="checkbox"

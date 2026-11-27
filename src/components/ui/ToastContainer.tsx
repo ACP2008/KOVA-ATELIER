@@ -10,7 +10,7 @@ export function ToastContainer() {
   return (
     <div
       aria-live="polite"
-      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-[calc(100vw-2.5rem)] pointer-events-none"
+      className="fixed top-16 inset-x-3 sm:top-auto sm:inset-x-auto sm:bottom-5 sm:right-5 z-50 flex flex-col gap-2.5 sm:max-w-sm sm:w-full pointer-events-none"
     >
       {toasts.map((t) => (
         <div

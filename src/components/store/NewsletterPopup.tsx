@@ -98,19 +98,19 @@ export function NewsletterPopup() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="newsletter-popup-heading"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
       onClick={handleDismiss}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white/80 backdrop-blur-2xl border border-white/70 shadow-2xl grid grid-cols-1 sm:grid-cols-12"
+        className="relative w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-2xl bg-white/85 backdrop-blur-2xl border border-white/70 shadow-2xl grid grid-cols-1 sm:grid-cols-12"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={handleDismiss}
           aria-label="Close newsletter invitation"
-          className="absolute top-3.5 right-3.5 z-10 w-8 h-8 rounded-full bg-white/75 backdrop-blur-md border border-zinc-200/80 flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white transition-colors cursor-pointer"
+          className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md border border-zinc-200/80 flex items-center justify-center text-zinc-600 hover:text-zinc-950 hover:bg-white transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -127,7 +127,7 @@ export function NewsletterPopup() {
         </div>
 
         {/* Right Frosted Glass Form */}
-        <div className="sm:col-span-7 p-7 sm:p-9 flex flex-col justify-center">
+        <div className="sm:col-span-7 p-5 sm:p-9 flex flex-col justify-center">
           <p className="text-[11px] tracking-[0.22em] uppercase text-zinc-500">
             {siteSettings.logoText || 'KOVA ATELIER'} · Private List
           </p>
@@ -172,15 +172,15 @@ export function NewsletterPopup() {
               </button>
             </div>
           ) : (
-            <div className="mt-3 space-y-5">
-              <div className="space-y-2">
+            <div className="mt-3 space-y-4 sm:space-y-5">
+              <div className="space-y-2 pr-6 sm:pr-0">
                 <h2
                   id="newsletter-popup-heading"
-                  className="font-display text-3xl sm:text-[34px] font-medium text-zinc-950 leading-[1.1] text-balance"
+                  className="font-display text-2xl sm:text-[34px] font-medium text-zinc-950 leading-[1.12] text-balance"
                 >
                   Early Access & 15% Off Your First Order
                 </h2>
-                <p className="text-sm text-zinc-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
                   Join our private list for small-batch men&apos;s T-shirt drops, limited graphic editions, and heavyweight cotton restocks.
                 </p>
               </div>
@@ -197,7 +197,7 @@ export function NewsletterPopup() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="w-full px-4 py-3 text-sm bg-white/85 border border-zinc-300/90 rounded-lg text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-950 transition-colors"
+                    className="w-full px-4 py-3 text-base sm:text-sm bg-white/85 border border-zinc-300/90 rounded-lg text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-950 transition-colors"
                   />
                 </div>
                 <button

@@ -134,55 +134,57 @@ export function ShopPage() {
 
   return (
     <main className="bg-[#FAFAFA] min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-12 sm:py-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-16">
         {/* Page Heading */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-zinc-200/80">
-          <div className="space-y-2">
-            <p className="text-xs font-medium tracking-[0.2em] uppercase text-zinc-500">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:gap-6 pb-6 sm:pb-8 border-b border-zinc-200/80">
+          <div className="space-y-1.5 sm:space-y-2">
+            <p className="text-[11px] sm:text-xs font-medium tracking-[0.2em] uppercase text-zinc-500">
               KOVA ATELIER · Men&apos;s T-Shirts
             </p>
-            <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-zinc-950">
+            <h1 className="font-display text-3xl sm:text-5xl font-semibold tracking-tight text-zinc-950">
               {pageHeading}
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 sm:w-64">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
+            <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search oversized, graphic, plain tees..."
-                className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900"
+                className="w-full pl-10 pr-4 py-2 text-base sm:text-sm bg-white border border-zinc-200 rounded-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900"
               />
             </div>
 
-            <button
-              onClick={() => setFiltersOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-zinc-200 rounded-lg text-zinc-800 hover:border-zinc-900 transition-colors cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>Filters</span>
-            </button>
+            <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => setFiltersOpen((v) => !v)}
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium bg-white border border-zinc-200 rounded-lg text-zinc-800 hover:border-zinc-900 transition-colors cursor-pointer whitespace-nowrap min-w-0"
+              >
+                <SlidersHorizontal className="w-4 h-4 shrink-0" />
+                <span>Filters</span>
+              </button>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              aria-label="Sort T-shirts"
-              className="px-3.5 py-2 text-sm bg-white border border-zinc-200 rounded-lg text-zinc-800 focus:outline-none focus:border-zinc-900 cursor-pointer"
-            >
-              <option value="featured">Sort: Featured</option>
-              <option value="newest">Sort: Newest</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                aria-label="Sort T-shirts"
+                className="w-full sm:w-auto min-w-0 px-3 sm:px-3.5 py-2.5 sm:py-2 text-xs sm:text-sm bg-white border border-zinc-200 rounded-lg text-zinc-800 focus:outline-none focus:border-zinc-900 cursor-pointer"
+              >
+                <option value="featured">Sort: Featured</option>
+                <option value="newest">Sort: Newest</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Category Navigation Strip (6 Dedicated Men's T-Shirt Categories) */}
-        <div className="flex items-center justify-between gap-4 py-5 overflow-x-auto">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 py-4 sm:py-5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -190,10 +192,10 @@ export function ShopPage() {
                   setSelectedCategory(cat);
                   if (cat !== 'All') setQuickFilter('all');
                 }}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`px-3 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-zinc-950 text-white'
-                    : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200/60'
+                    : 'bg-white sm:bg-transparent border border-zinc-200 sm:border-transparent text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200/60'
                 }`}
               >
                 {cat}
@@ -201,7 +203,7 @@ export function ShopPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-zinc-500 whitespace-nowrap shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-4 text-xs text-zinc-500 whitespace-nowrap shrink-0">
             <span className="font-mono tabular-nums">{filteredProducts.length} T-shirts</span>
             {hasActiveFilters && (
               <button
@@ -217,7 +219,7 @@ export function ShopPage() {
 
         {/* Expandable Glass Filter Drawer */}
         {filtersOpen && (
-          <div className="mb-8 p-6 bg-white border border-zinc-200/80 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-white border border-zinc-200/80 rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
             {/* Quick Filter */}
             <div className="space-y-2.5">
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
@@ -336,7 +338,7 @@ export function ShopPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 pt-4">
+          <div className="grid grid-cols-2 max-[349px]:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 min-[376px]:gap-4 sm:gap-6 lg:gap-8 pt-3 sm:pt-4">
             {filteredProducts.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -345,16 +347,16 @@ export function ShopPage() {
 
         {/* Recently Viewed Section */}
         {recentProducts.length > 0 && (
-          <section className="mt-24 pt-12 border-t border-zinc-200/80">
-            <div className="flex items-end justify-between mb-8">
+          <section className="mt-16 sm:mt-24 pt-10 sm:pt-12 border-t border-zinc-200/80">
+            <div className="flex items-end justify-between mb-6 sm:mb-8">
               <div>
-                <p className="text-xs tracking-[0.18em] uppercase text-zinc-500">Your History</p>
-                <h2 className="font-display text-3xl font-semibold text-zinc-950 mt-1">
+                <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-zinc-500">Your History</p>
+                <h2 className="font-display text-2xl sm:text-3xl font-semibold text-zinc-950 mt-1">
                   Recently Viewed
                 </h2>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            <div className="grid grid-cols-2 max-[349px]:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 min-[376px]:gap-4 sm:gap-6 lg:gap-8">
               {recentProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

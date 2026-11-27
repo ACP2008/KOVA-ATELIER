@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { ResilientImage } from '../ui/ResilientImage';
@@ -15,6 +15,15 @@ export function CartDrawer() {
     siteSettings,
     navigate,
   } = useStore();
+
+  useEffect(() => {
+    if (!cartOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [cartOpen]);
 
   if (!cartOpen) return null;
 
@@ -33,17 +42,17 @@ export function CartDrawer() {
         onClick={() => setCartOpen(false)}
       />
 
-      <aside className="relative w-full max-w-md bg-white/95 backdrop-blur-2xl h-full flex flex-col shadow-2xl border-l border-zinc-200">
+      <aside className="relative w-full max-w-[100vw] sm:max-w-md bg-white/95 backdrop-blur-2xl h-[100dvh] flex flex-col shadow-2xl border-l border-zinc-200">
         {/* Drawer Header */}
-        <div className="px-6 py-5 border-b border-zinc-200 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <h2 className="font-display text-2xl font-medium text-zinc-950">Shopping Bag</h2>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-zinc-200 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-xl sm:text-2xl font-medium text-zinc-950">Shopping Bag</h2>
             <span className="text-xs font-mono text-zinc-500 tabular-nums">({cartCount})</span>
           </div>
           <button
             onClick={() => setCartOpen(false)}
             aria-label="Close shopping bag"
-            className="p-2 text-zinc-500 hover:text-zinc-950 transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -51,7 +60,7 @@ export function CartDrawer() {
 
         {/* Free Shipping Progress */}
         {cart.length > 0 && (
-          <div className="px-6 py-3 bg-zinc-50 border-b border-zinc-200/80 space-y-2">
+          <div className="px-4 sm:px-6 py-3 bg-zinc-50 border-b border-zinc-200/80 space-y-2 shrink-0">
             <p className="text-xs text-zinc-700">
               {remainingForFree === 0 ? (
                 <span>Your order qualifies for complimentary express shipping.</span>
@@ -72,7 +81,7 @@ export function CartDrawer() {
         )}
 
         {/* Cart Items or Empty Design */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
               <div className="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500">
@@ -135,13 +144,13 @@ export function CartDrawer() {
                     </div>
 
                     <div className="flex items-center justify-between pt-3">
-                      <div className="inline-flex items-center border border-zinc-200 rounded-md h-8">
+                      <div className="inline-flex items-center border border-zinc-200 rounded-md h-9 sm:h-8">
                         <button
                           onClick={() =>
                             updateCartQty(item.productId, item.size, item.color, item.quantity - 1)
                           }
                           aria-label="Decrease quantity"
-                          className="w-7 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                          className="w-8 sm:w-7 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 cursor-pointer"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -153,7 +162,7 @@ export function CartDrawer() {
                             updateCartQty(item.productId, item.size, item.color, item.quantity + 1)
                           }
                           aria-label="Increase quantity"
-                          className="w-7 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                          className="w-8 sm:w-7 h-full flex items-center justify-center text-zinc-600 hover:text-zinc-950 cursor-pointer"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -179,7 +188,7 @@ export function CartDrawer() {
 
         {/* Drawer Footer */}
         {cart.length > 0 && (
-          <div className="p-6 border-t border-zinc-200 bg-zinc-50/70 space-y-4">
+          <div className="p-4 sm:p-6 border-t border-zinc-200 bg-zinc-50/70 space-y-4 shrink-0">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-zinc-600">
                 <span>Subtotal</span>

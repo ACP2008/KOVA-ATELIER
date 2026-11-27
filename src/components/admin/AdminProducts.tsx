@@ -276,8 +276,8 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
           {['All', ...CATEGORIES].map((cat) => (
             <button
               key={cat}
@@ -296,7 +296,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 cursor-pointer"
+          className="self-start sm:self-auto px-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 cursor-pointer"
         >
           <option value="All">All Statuses</option>
           <option value="active">Active</option>
@@ -306,9 +306,9 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
       </div>
 
       {/* Products Data Table */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden min-w-0">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs whitespace-nowrap">
             <thead>
               <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                 <th className="py-3.5 px-5 font-medium">Product</th>
@@ -445,9 +445,9 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
           />
           <form
             onSubmit={handleSave}
-            className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full flex flex-col shadow-2xl"
+            className="relative w-full max-w-[100vw] sm:max-w-2xl bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-[100dvh] flex flex-col shadow-2xl"
           >
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
               <h2 className="text-base font-semibold text-zinc-950 dark:text-white">
                 {isEditing ? 'Edit Product' : 'Add New Product'}
               </h2>
@@ -460,7 +460,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
@@ -718,24 +718,24 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2">
                   <input
                     type="text"
                     value={newColorName}
                     onChange={(e) => setNewColorName(e.target.value)}
                     placeholder="Add color name (e.g. Graphite)"
-                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
+                    className="flex-1 min-w-[140px] px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
                   />
                   <input
                     type="color"
                     value={newColorHex}
                     onChange={(e) => setNewColorHex(e.target.value)}
-                    className="w-10 h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 p-0.5 cursor-pointer"
+                    className="w-10 h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 p-0.5 cursor-pointer shrink-0"
                   />
                   <button
                     type="button"
                     onClick={addColor}
-                    className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer"
+                    className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer shrink-0"
                   >
                     Add
                   </button>
@@ -744,7 +744,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
 
               {/* Variant Stock Summary */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <label className="font-medium text-zinc-700 dark:text-zinc-300">
                     Stock by Size & Color
                   </label>
@@ -752,7 +752,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                     Total: {Object.values(form.variantStock).reduce((s, v) => s + v, 0)} units
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 min-[376px]:grid-cols-2 sm:grid-cols-3 gap-2">
                   {Object.entries(form.variantStock).map(([key, qty]) => (
                     <div
                       key={key}
@@ -783,7 +783,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                   Product Images (max 8)
                 </label>
 
-                <div className="grid grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
                   {form.images.map((img, idx) => (
                     <div key={`${img}-${idx}`} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
                       <ResilientImage src={img} alt="Product preview" className="w-full h-full object-cover" />
@@ -814,13 +814,13 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                   </label>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2">
                   <input
                     type="text"
                     value={newImageUrl}
                     onChange={(e) => setNewImageUrl(e.target.value)}
                     placeholder="Or paste image URL..."
-                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
+                    className="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent"
                   />
                   <button
                     type="button"
@@ -829,7 +829,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
                       setForm({ ...form, images: [...form.images, newImageUrl.trim()].slice(0, 8) });
                       setNewImageUrl('');
                     }}
-                    className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer"
+                    className="px-3.5 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 font-medium cursor-pointer shrink-0"
                   >
                     Add URL
                   </button>
@@ -862,7 +862,7 @@ export function AdminProducts({ globalSearch }: AdminProductsProps) {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+            <div className="px-4 sm:px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}

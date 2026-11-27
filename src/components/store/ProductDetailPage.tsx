@@ -106,18 +106,18 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
   return (
     <main className="bg-[#FAFAFA] min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-8 sm:py-12">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-12">
         {/* Back Breadcrumb */}
         <button
           onClick={() => navigate({ name: 'shop' })}
-          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-600 hover:text-zinc-950 mb-8 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-600 hover:text-zinc-950 mb-5 sm:mb-8 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Collection</span>
         </button>
 
         {/* Contiguous PDP Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 lg:gap-16 items-start">
           {/* Left: Sticky Multi-Image Lookbook Gallery */}
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4 lg:sticky lg:top-24">
             {product.images.length > 1 && (
@@ -198,7 +198,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                 <span className="font-medium text-zinc-900">Color</span>
                 <span className="text-zinc-600">{selectedColor}</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 {product.colors.map((c) => (
                   <button
                     key={c.name}
@@ -236,7 +236,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   <span>Size Guide</span>
                 </button>
               </div>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                 {product.sizes.map((sz) => {
                   const key = `${sz}_${selectedColor}`;
                   const szStock = key in product.variantStock ? product.variantStock[key] : product.stockQuantity;
@@ -279,8 +279,8 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
             {/* Quantity & Actions */}
             <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-3">
-                <div className="inline-flex items-center border border-zinc-300 bg-white rounded-lg h-12">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3">
+                <div className="order-1 inline-flex items-center border border-zinc-300 bg-white rounded-lg h-11 sm:h-12 shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -289,7 +289,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-10 text-center text-sm font-mono tabular-nums font-medium">
+                  <span className="w-9 sm:w-10 text-center text-sm font-mono tabular-nums font-medium">
                     {quantity}
                   </span>
                   <button
@@ -306,7 +306,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   type="button"
                   disabled={!isVariantAvailable}
                   onClick={() => handleAdd(false)}
-                  className="flex-1 h-12 px-6 bg-zinc-950 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+                  className="order-3 sm:order-2 basis-full sm:basis-auto sm:flex-1 h-12 px-5 sm:px-6 bg-zinc-950 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
                 >
                   {isVariantAvailable ? `Add to Bag — $${effectivePrice * quantity}` : 'Sold Out'}
                 </button>
@@ -315,7 +315,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   type="button"
                   onClick={() => toggleWishlist(product.id)}
                   aria-label="Toggle wishlist"
-                  className="h-12 w-12 rounded-lg border border-zinc-300 bg-white flex items-center justify-center text-zinc-800 hover:border-zinc-950 transition-colors cursor-pointer shrink-0"
+                  className="order-2 sm:order-3 ml-auto sm:ml-0 h-11 w-11 sm:h-12 sm:w-12 rounded-lg border border-zinc-300 bg-white flex items-center justify-center text-zinc-800 hover:border-zinc-950 transition-colors cursor-pointer shrink-0"
                 >
                   <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-zinc-950 text-zinc-950' : ''}`} />
                 </button>
@@ -365,16 +365,16 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <section className="mt-24 pt-12 border-t border-zinc-200/80">
-            <div className="mb-8">
-              <p className="text-xs tracking-[0.18em] uppercase text-zinc-500">
+          <section className="mt-16 sm:mt-24 pt-10 sm:pt-12 border-t border-zinc-200/80">
+            <div className="mb-6 sm:mb-8">
+              <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase text-zinc-500">
                 Complete the Silhouette
               </p>
-              <h2 className="font-display text-3xl font-medium text-zinc-950 mt-1">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-zinc-950 mt-1">
                 Related Pieces
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            <div className="grid grid-cols-2 max-[349px]:grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 min-[376px]:gap-4 sm:gap-6 lg:gap-8">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
@@ -386,16 +386,16 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       {/* Size Guide Modal */}
       {sizeGuideOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
           onClick={() => setSizeGuideOpen(false)}
         >
           <div
-            className="w-full max-w-xl bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 shadow-2xl"
+            className="w-full max-w-xl max-h-[90dvh] overflow-y-auto bg-white border border-zinc-200 rounded-2xl p-5 sm:p-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-200">
+            <div className="flex items-center justify-between gap-3 pb-4 border-b border-zinc-200">
               <div>
-                <h3 className="font-display text-2xl font-semibold text-zinc-950">
+                <h3 className="font-display text-xl sm:text-2xl font-semibold text-zinc-950">
                   Men&apos;s T-Shirt Size Guide
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">
@@ -405,13 +405,13 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               <button
                 onClick={() => setSizeGuideOpen(false)}
                 aria-label="Close size guide"
-                className="p-1.5 text-zinc-400 hover:text-zinc-900"
+                className="p-2 text-zinc-400 hover:text-zinc-900 shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="overflow-x-auto mt-5">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-zinc-200 text-zinc-500 uppercase tracking-wider">
                     <th className="py-2.5 pr-4">Size</th>

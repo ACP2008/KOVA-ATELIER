@@ -7,25 +7,25 @@ export function Footer() {
 
   return (
     <footer className="bg-zinc-950 text-zinc-300 border-t border-zinc-900">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-12 border-b border-zinc-800/80">
-          <div className="md:col-span-4 space-y-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 py-12 sm:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12 pb-10 sm:pb-12 border-b border-zinc-800/80">
+          <div className="col-span-2 md:col-span-4 space-y-3.5 sm:space-y-4">
             <button
               onClick={() => navigate({ name: 'home' })}
-              className="font-display text-2xl font-semibold tracking-[0.16em] text-white cursor-pointer"
+              className="font-display text-xl sm:text-2xl font-semibold tracking-[0.16em] text-white cursor-pointer"
             >
               {siteSettings.logoText || 'KOVA ATELIER'}
             </button>
             <p className="text-sm text-zinc-400 leading-relaxed max-w-sm">
               {siteSettings.tagline}
             </p>
-            <div className="text-xs text-zinc-500 space-y-1 pt-2">
-              <p>{siteSettings.contactEmail}</p>
+            <div className="text-xs text-zinc-500 space-y-1 pt-1 sm:pt-2">
+              <p className="break-all">{siteSettings.contactEmail}</p>
               <p className="font-mono tabular-nums">{siteSettings.contactPhone}</p>
             </div>
           </div>
 
-          <div className="md:col-span-2 space-y-3">
+          <div className="col-span-1 md:col-span-2 space-y-3">
             <h3 className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
               Shop
             </h3>
@@ -65,7 +65,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="md:col-span-3 space-y-3">
+          <div className="col-span-1 md:col-span-3 space-y-3">
             <h3 className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
               Client Services
             </h3>
@@ -73,7 +73,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={() => navigate({ name: 'account', tab: 'track' })}
-                  className="hover:text-white transition-colors cursor-pointer"
+                  className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Track Your Order
                 </button>
@@ -81,7 +81,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={() => navigate({ name: 'account', tab: 'orders' })}
-                  className="hover:text-white transition-colors cursor-pointer"
+                  className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Order History & Profile
                 </button>
@@ -89,7 +89,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={() => navigate({ name: 'wishlist' })}
-                  className="hover:text-white transition-colors cursor-pointer"
+                  className="hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Saved Wishlist
                 </button>
@@ -97,7 +97,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={() => navigate({ name: 'admin', section: 'overview' })}
-                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Admin Dashboard
                 </button>
@@ -105,11 +105,11 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="md:col-span-3 space-y-3">
+          <div className="col-span-2 md:col-span-3 space-y-3">
             <h3 className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
               Connect
             </h3>
-            <div className="flex flex-col space-y-2.5 text-sm">
+            <div className="flex flex-row flex-wrap gap-x-5 gap-y-2 md:flex-col md:gap-0 md:space-y-2.5 text-sm">
               {siteSettings.instagramUrl && (
                 <a
                   href={siteSettings.instagramUrl}
@@ -154,7 +154,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div className="pt-6 sm:pt-8 pb-14 sm:pb-0 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs text-zinc-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} {siteSettings.storeName}. All rights reserved.</p>
           <p>Complimentary express shipping over ${siteSettings.freeShippingThreshold} · Cash on Delivery & Verified Transfer</p>
         </div>
@@ -178,9 +178,9 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noreferrer"
       aria-label="Contact Concierge on WhatsApp"
-      className="fixed bottom-5 left-5 z-30 inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-zinc-950/90 text-white backdrop-blur-md border border-white/15 shadow-lg hover:bg-zinc-800 transition-all duration-200 text-xs font-medium"
+      className="fixed bottom-4 left-4 sm:bottom-5 sm:left-5 z-30 inline-flex items-center justify-center gap-2 w-11 h-11 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 rounded-full bg-zinc-950/90 text-white backdrop-blur-md border border-white/15 shadow-lg hover:bg-zinc-800 transition-all duration-200 text-xs font-medium"
     >
-      <MessageCircle className="w-4 h-4" />
+      <MessageCircle className="w-4 h-4 shrink-0" />
       <span className="hidden sm:inline">Concierge</span>
     </a>
   );

@@ -90,6 +90,16 @@ export function AdminLayout({ section }: AdminLayoutProps) {
     return () => window.removeEventListener('mousedown', handleClickOutside);
   }, [profileMenuOpen]);
 
+  // Lock body scroll when mobile sidebar or notification drawer is open
+  useEffect(() => {
+    if (!sidebarOpen && !notifOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [sidebarOpen, notifOpen]);
+
   const unreadCount = useMemo(
     () => adminNotifications.filter((n) => !n.read).length,
     [adminNotifications]
@@ -268,7 +278,7 @@ export function AdminLayout({ section }: AdminLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F4F4F6] via-[#FAFAFB] to-[#ECEEF2] dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900 text-zinc-950 dark:text-zinc-100 flex">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip bg-gradient-to-br from-[#F4F4F6] via-[#FAFAFB] to-[#ECEEF2] dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900 text-zinc-950 dark:text-zinc-100 flex">
       {/* Desktop Glass Sidebar */}
       <aside className="hidden lg:block w-64 shrink-0 glass-panel border-r border-zinc-200/80 dark:border-zinc-800/80 sticky top-0 h-screen">
         {SidebarContent}
@@ -281,7 +291,7 @@ export function AdminLayout({ section }: AdminLayoutProps) {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="relative w-64 max-w-[82vw] bg-white dark:bg-zinc-900 h-full shadow-2xl">
+          <aside className="relative w-64 max-w-[84vw] bg-white dark:bg-zinc-900 h-[100dvh] shadow-2xl">
             {SidebarContent}
           </aside>
         </div>
@@ -290,16 +300,16 @@ export function AdminLayout({ section }: AdminLayoutProps) {
       {/* Main Content Canvas */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 h-16 glass-nav border-b border-zinc-200/80 dark:border-zinc-800/80 px-4 sm:px-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="sticky top-0 z-30 h-14 sm:h-16 glass-nav border-b border-zinc-200/80 dark:border-zinc-800/80 px-3 sm:px-8 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
               aria-label="Open sidebar"
-              className="lg:hidden p-2 -ml-2 text-zinc-600 dark:text-zinc-300"
+              className="lg:hidden p-2 -ml-1 text-zinc-600 dark:text-zinc-300 shrink-0 cursor-pointer"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2 text-sm truncate">
+            <div className="flex items-center gap-2 text-sm min-w-0">
               <span className="text-zinc-400 dark:text-zinc-500 hidden sm:inline">Admin</span>
               <span className="text-zinc-300 dark:text-zinc-700 hidden sm:inline">/</span>
               <span className="font-semibold text-zinc-950 dark:text-white truncate">
@@ -308,7 +318,7 @@ export function AdminLayout({ section }: AdminLayoutProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Global Search */}
             <div className="relative hidden md:block w-60">
               <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -366,7 +376,7 @@ export function AdminLayout({ section }: AdminLayoutProps) {
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-60 rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 shadow-2xl p-2 z-50">
+                <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-1.5rem)] rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800 shadow-2xl p-2 z-50">
                   <div className="px-3 py-2.5 border-b border-zinc-200/70 dark:border-zinc-800">
                     <p className="text-xs font-semibold text-zinc-950 dark:text-white truncate">
                       {user.displayName || 'Store Administrator'}
@@ -405,8 +415,24 @@ export function AdminLayout({ section }: AdminLayoutProps) {
           </div>
         </header>
 
+        {/* Mobile Search Bar for Searchable Sections */}
+        {(section === 'products' || section === 'inventory' || section === 'orders' || section === 'customers') && (
+          <div className="md:hidden px-3.5 pt-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                placeholder={`Search ${currentNav.label.toLowerCase()}...`}
+                className="w-full pl-9 pr-3 py-2 text-base sm:text-xs bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Active Section Viewport */}
-        <main className="flex-1 p-4 sm:p-8 max-w-[1440px] w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-8 max-w-[1440px] w-full min-w-0 mx-auto">
           {renderSection()}
         </main>
       </div>
@@ -418,8 +444,8 @@ export function AdminLayout({ section }: AdminLayoutProps) {
             className="fixed inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setNotifOpen(false)}
           />
-          <aside className="relative w-full max-w-md bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border-l border-zinc-200 dark:border-zinc-800 h-full flex flex-col shadow-2xl">
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <aside className="relative w-full max-w-[100vw] sm:max-w-md bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border-l border-zinc-200 dark:border-zinc-800 h-[100dvh] flex flex-col shadow-2xl">
+            <div className="px-4 sm:px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2 shrink-0">
               <div>
                 <h2 className="text-base font-semibold text-zinc-950 dark:text-white">
                   Notifications

@@ -109,9 +109,9 @@ export function AdminPromotions() {
         </button>
       </div>
 
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden min-w-0">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs whitespace-nowrap">
             <thead>
               <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                 <th className="py-3.5 px-5 font-medium">Code</th>
@@ -174,13 +174,13 @@ export function AdminPromotions() {
       {/* Create / Edit Modal */}
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
           onClick={() => setModalOpen(false)}
         >
           <form
             onSubmit={handleSave}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-2xl text-xs"
+            className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 space-y-4 shadow-2xl text-xs"
           >
             <div className="flex items-center justify-between pb-2">
               <h2 className="text-base font-semibold text-zinc-950 dark:text-white">
@@ -210,7 +210,7 @@ export function AdminPromotions() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[376px]:grid-cols-2 gap-3">
               <div>
                 <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                   Discount Type
@@ -240,7 +240,7 @@ export function AdminPromotions() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[376px]:grid-cols-2 gap-3">
               <div>
                 <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
                   Min Order Amount ($)

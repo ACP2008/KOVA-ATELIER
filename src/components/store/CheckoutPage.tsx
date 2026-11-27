@@ -156,8 +156,8 @@ export function CheckoutPage() {
 
   if (placedReceipt) {
     return (
-      <main className="min-h-[75vh] bg-[#FAFAFA] flex items-center justify-center px-6 py-16">
-        <div className="max-w-lg w-full bg-white border border-zinc-200 rounded-2xl p-8 sm:p-10 text-center space-y-5">
+      <main className="min-h-[75vh] bg-[#FAFAFA] flex items-center justify-center px-4 sm:px-6 py-10 sm:py-16">
+        <div className="max-w-lg w-full bg-white border border-zinc-200 rounded-2xl p-6 sm:p-10 text-center space-y-5">
           <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -233,23 +233,23 @@ export function CheckoutPage() {
   }
 
   return (
-    <main className="bg-[#FAFAFA] min-h-screen py-10 sm:py-16">
-      <div className="max-w-[1200px] mx-auto px-6 sm:px-10">
+    <main className="bg-[#FAFAFA] min-h-screen py-8 sm:py-16">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-10">
         <button
           onClick={() => navigate({ name: 'shop' })}
-          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-600 hover:text-zinc-950 mb-8 cursor-pointer"
+          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-600 hover:text-zinc-950 mb-5 sm:mb-8 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Return to Collection</span>
         </button>
 
-        <h1 className="font-display text-4xl font-medium text-zinc-950 mb-10">Checkout</h1>
+        <h1 className="font-display text-3xl sm:text-4xl font-medium text-zinc-950 mb-6 sm:mb-10">Checkout</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-start">
           {/* Left Form */}
           <div className="lg:col-span-7 space-y-6">
             {!user && (
-              <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-sm font-semibold text-zinc-950">
                     Sign in to Place Your Order
@@ -271,7 +271,7 @@ export function CheckoutPage() {
             <form
               id="checkout-form"
               onSubmit={handleSubmitOrder}
-              className="bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-8 space-y-8"
+              className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-8 space-y-7 sm:space-y-8"
             >
               {/* Contact Details */}
               <div className="space-y-4">
@@ -290,8 +290,8 @@ export function CheckoutPage() {
                       maxLength={100}
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Elena Rostova"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      placeholder="Marcus Vance"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -304,8 +304,8 @@ export function CheckoutPage() {
                       maxLength={120}
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      placeholder="elena@example.com"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      placeholder="marcus@example.com"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -320,7 +320,7 @@ export function CheckoutPage() {
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder="+1 (212) 555-0148"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export function CheckoutPage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="142 Mercer Street, Apt 4B"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -357,7 +357,7 @@ export function CheckoutPage() {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="New York"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -372,7 +372,7 @@ export function CheckoutPage() {
                       value={stateRegion}
                       onChange={(e) => setStateRegion(e.target.value)}
                       placeholder="NY"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -387,7 +387,7 @@ export function CheckoutPage() {
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
                       placeholder="10012"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                   <div>
@@ -400,7 +400,7 @@ export function CheckoutPage() {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Leave with doorman"
-                      className="w-full px-3.5 py-2.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                     />
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export function CheckoutPage() {
           </div>
 
           {/* Right Order Summary */}
-          <aside className="lg:col-span-5 bg-white border border-zinc-200/80 rounded-2xl p-6 sm:p-8 space-y-6 lg:sticky lg:top-24">
+          <aside className="lg:col-span-5 bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-8 space-y-6 lg:sticky lg:top-24">
             <h2 className="font-display text-2xl font-medium text-zinc-950">Order Summary</h2>
 
             <ul className="divide-y divide-zinc-100 max-h-72 overflow-y-auto pr-1">
@@ -492,13 +492,13 @@ export function CheckoutPage() {
                   value={promoInput}
                   onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
                   placeholder="KOVA15"
-                  className="flex-1 px-3 py-2 text-xs font-mono uppercase border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
+                  className="flex-1 min-w-0 px-3 py-2 text-sm sm:text-xs font-mono uppercase border border-zinc-300 rounded-lg focus:outline-none focus:border-zinc-950"
                 />
                 <button
                   type="button"
                   disabled={promoChecking || !promoInput.trim()}
                   onClick={handleApplyPromo}
-                  className="px-4 py-2 text-xs font-medium bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-40 cursor-pointer"
+                  className="px-4 py-2 text-xs font-medium bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-40 cursor-pointer shrink-0"
                 >
                   {promoChecking ? 'Checking...' : 'Apply'}
                 </button>

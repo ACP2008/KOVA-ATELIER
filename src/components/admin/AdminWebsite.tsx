@@ -66,7 +66,7 @@ export function AdminWebsite() {
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-medium rounded-lg hover:opacity-90 disabled:opacity-50 cursor-pointer whitespace-nowrap"
+          className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-medium rounded-lg hover:opacity-90 disabled:opacity-50 cursor-pointer whitespace-nowrap"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? 'Publishing...' : 'Save Changes'}</span>
@@ -74,7 +74,7 @@ export function AdminWebsite() {
       </div>
 
       {/* Brand Identity & Announcement */}
-      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 space-y-5 text-xs">
+      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5 text-xs">
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">Brand Identity & Promo Bar</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -133,7 +133,7 @@ export function AdminWebsite() {
       </section>
 
       {/* Homepage Hero Banner */}
-      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 space-y-5 text-xs">
+      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5 text-xs">
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">Homepage Hero Campaign</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
@@ -213,7 +213,7 @@ export function AdminWebsite() {
       </section>
 
       {/* Contact, Social & Shipping */}
-      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-6 space-y-5 text-xs">
+      <section className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl p-4 sm:p-6 space-y-5 text-xs">
         <h2 className="text-sm font-semibold text-zinc-950 dark:text-white">
           Contact Channels, Social Links & Shipping Rules
         </h2>

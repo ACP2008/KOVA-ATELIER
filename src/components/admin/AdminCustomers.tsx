@@ -49,7 +49,7 @@ export function AdminCustomers({ globalSearch }: AdminCustomersProps) {
         </p>
       </div>
 
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden">
+      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden min-w-0">
         {customers.length === 0 ? (
           <div className="py-16 text-center px-6">
             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">No customers yet</p>
@@ -59,7 +59,7 @@ export function AdminCustomers({ globalSearch }: AdminCustomersProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-200/80 dark:border-zinc-800 text-zinc-500">
                   <th className="py-3.5 px-5 font-medium">Customer</th>
@@ -110,23 +110,23 @@ export function AdminCustomers({ globalSearch }: AdminCustomersProps) {
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={() => setSelectedCustomer(null)}
           />
-          <aside className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full flex flex-col shadow-2xl text-xs">
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-zinc-950 dark:text-white">
+          <aside className="relative w-full max-w-[100vw] sm:max-w-lg bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-[100dvh] flex flex-col shadow-2xl text-xs">
+            <div className="px-4 sm:px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2 shrink-0">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-zinc-950 dark:text-white truncate">
                   {selectedCustomer.profile.displayName || 'Client Profile'}
                 </h2>
-                <p className="text-zinc-500">{selectedCustomer.profile.email}</p>
+                <p className="text-zinc-500 truncate">{selectedCustomer.profile.email}</p>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
+                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
               <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-800 space-y-1.5">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
                   Contact & Saved Address
